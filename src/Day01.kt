@@ -12,9 +12,7 @@ fun main() {
 
     fun part2(input: List<String>): Int {
         val measurements = toInts(input)
-        return increaseCount(
-            measurements.zip(measurements.drop(1)) { a, b -> a + b }
-                .zip(measurements.drop(2)) { a, b -> a + b })
+        return increaseCount(measurements.windowed(3){ it.sum() })
     }
 
     // test if implementation meets criteria from the description, like:
