@@ -12,3 +12,4 @@ fun readInput(name: String) = File("src", "$name.txt").readLines()
  */
 fun String.md5(): String = BigInteger(1, MessageDigest.getInstance("MD5").digest(toByteArray())).toString(16)
 
+inline fun SHOULD_NOT_REACH(): Nothing = throw IllegalStateException("Should not reach")
