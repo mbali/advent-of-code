@@ -1,21 +1,22 @@
-fun main() {
-    class BingoBoard(val numbers: Array<Int>) {
-        init {
-            check(numbers.size == 25)
-        }
-
-        private val marks = BooleanArray(25)
-
-        fun mark(number: Int): Int? {
-            val idx = numbers.indexOf(number)
-            if (idx < 0) return null
-            marks[idx] = true
-            val bingo = (0..4).map { marks[idx / 5 * 5 + it] }.reduce { acc, mark -> acc && mark } ||
-                    (0..4).map { marks[idx % 5 + it * 5] }.reduce { acc, mark -> acc && mark }
-            if (!bingo) return null
-            return numbers.zip(marks.toTypedArray()).filter { !it.second }.sumOf { it.first } * number
-        }
+private class BingoBoard(val numbers: Array<Int>) {
+    init {
+        check(numbers.size == 25)
     }
+
+    private val marks = BooleanArray(25)
+
+    fun mark(number: Int): Int? {
+        val idx = numbers.indexOf(number)
+        if (idx < 0) return null
+        marks[idx] = true
+        val bingo = (0..4).map { marks[idx / 5 * 5 + it] }.reduce { acc, mark -> acc && mark } ||
+                (0..4).map { marks[idx % 5 + it * 5] }.reduce { acc, mark -> acc && mark }
+        if (!bingo) return null
+        return numbers.zip(marks.toTypedArray()).filter { !it.second }.sumOf { it.first } * number
+    }
+}
+
+fun main() {
 
     fun parseInput(input: List<String>): Pair<List<Int>, List<BingoBoard>> {
         val draws = input.first().split(",").map { it.toInt() }
@@ -41,7 +42,21 @@ fun main() {
     }
 
     fun part2(input: List<String>): Int {
-        TODO()
+        val (draws, boards) = parseInput(input).let { it.first to it.second.toMutableList() }
+        draws.forEach { draw ->
+            ArrayList(boards) //copy boards to avoid concurrent modification
+                .forEach { board ->
+                    val score = board.mark(draw)
+                    if (score != null) {
+                        if (boards.size == 1) {
+                            return score
+                        } else {
+                            boards.remove(board)
+                        }
+                    }
+                }
+        }
+        SHOULD_NOT_REACH()
     }
 
     val testInput = readInput("Day04_test")
@@ -50,7 +65,7 @@ fun main() {
     val input = readInput("Day04")
     println(part1(input))
 
-    check(part2(testInput) == -1)
+    check(part2(testInput) == 1924)
     println(part2(input))
 
 }
