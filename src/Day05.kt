@@ -1,18 +1,20 @@
+import kotlin.math.abs
 import kotlin.math.max
-import kotlin.math.min
+import kotlin.math.sign
 
 private data class Position(val x: Int, val y: Int)
 
 private class Line(val start: Position, val end: Position) {
     fun positions(ordinalDirectionsOnly: Boolean): List<Position> {
-        return if (start.x == end.x) {
-            (min(start.y, end.y)..max(start.y, end.y)).map { y -> Position(start.x, y) }
-        } else if (start.y == end.y) {
-            (min(start.x, end.x)..max(start.x, end.x)).map { x -> Position(x, start.y) }
-        } else if (ordinalDirectionsOnly) {
-            return emptyList()
-        } else {
-            TODO()
+        val dx = (end.x - start.x).sign
+        val dy = (end.y - start.y).sign
+        if (ordinalDirectionsOnly && dx != 0 && dy != 0) return emptyList()
+        val length = max(abs(end.x - start.x), abs(end.y - start.y))
+        return (0..length).map { distance ->
+            Position(
+                start.x + dx * distance,
+                start.y + dy * distance
+            )
         }
     }
 
@@ -31,18 +33,20 @@ private class Line(val start: Position, val end: Position) {
     }
 }
 
+private fun List<String>.solution(ordinalDirectionsOnly: Boolean): Int = map(Line::from)
+    .flatMap { it.positions(ordinalDirectionsOnly) }
+    .groupingBy { it }
+    .eachCount()
+    .count() { it.value > 1 }
+
 fun main() {
 
     fun part1(input: List<String>): Int {
-        return input.map(Line::from)
-            .flatMap { it.positions(true) }
-            .groupingBy { it }
-            .eachCount()
-            .count() { it.value > 1 }
+        return input.solution(true)
     }
 
     fun part2(input: List<String>): Int {
-        TODO()
+        return input.solution(false)
     }
 
     val testInput = readInput("Day05_test")
@@ -51,6 +55,6 @@ fun main() {
     val input = readInput("Day05")
     println(part1(input))
 
-    check(part2(testInput) == TODO())
+    check(part2(testInput) == 12)
     println(part2(input))
 }
