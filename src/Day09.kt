@@ -1,7 +1,37 @@
+private typealias HeightMap = Array<Array<Int>>
+
+
+private fun List<String>.asHeightMap(): HeightMap = this.map {
+    Regex("""\d""").findAll(it).map { digit -> digit.value.toInt() }.toList().toTypedArray()
+}.toTypedArray()
+
+
+private fun HeightMap.hasPosition(row: Int, col: Int) = row in this.indices && col in this[row].indices
+
+private val neigboursDirections = listOf(
+    0 to 1,
+    0 to -1,
+    1 to 0,
+    -1 to 0
+)
+
 fun main() {
 
     fun part1(input: List<String>): Int {
-        TODO()
+        val heightMap = input.asHeightMap()
+        val lowPointPositions = buildList<Pair<Int, Int>> {
+            heightMap
+                .indices.forEach { row ->
+                    heightMap[row].indices.forEach { col ->
+                        if (
+                            neigboursDirections.map { (row + it.first) to (col + it.second) }
+                                .filter { heightMap.hasPosition(it.first, it.second) }
+                                .all { heightMap[it.first][it.second] > heightMap[row][col] })
+                            this.add(row to col)
+                    }
+                }
+        }
+        return lowPointPositions.sumOf { heightMap[it.first][it.second] + 1 }
     }
 
     fun part2(input: List<String>): Int {
@@ -9,7 +39,7 @@ fun main() {
     }
 
     val testInput = readInput("Day09_test")
-    check(part1(testInput) == TODO())
+    check(part1(testInput) == 15)
 
     val input = readInput("Day09")
     println(part1(input))
