@@ -15,10 +15,6 @@ private val neigboursDirections = listOf(
     -1 to 0
 )
 
-private fun Pair<Int, Int>.isNeighbour(other: Pair<Int, Int>): Boolean = neigboursDirections
-    .map { first + it.first to second + it.second }
-    .any { it == other }
-
 fun main() {
 
     fun part1(input: List<String>): Int {
@@ -38,23 +34,37 @@ fun main() {
         return lowPointPositions.sumOf { heightMap[it.first][it.second] + 1 }
     }
 
+    fun flood(from: Pair<Int, Int>, basinIndex: Int, heightMap: HeightMap, basinMap: HeightMap) {
+        if (heightMap[from.first][from.second] == 9 || basinMap[from.first][from.second] >= 0) return
+        basinMap[from.first][from.second] = basinIndex
+        neigboursDirections.map { it.first + from.first to it.second + from.second } //neighbour candidates
+            .filter { heightMap.hasPosition(it.first, it.second) } //bound into map
+            .forEach {
+                flood(it, basinIndex, heightMap, basinMap) //flood from neigbours
+            }
+    }
+
     fun part2(input: List<String>): Int {
         val heightMap = input.asHeightMap()
-        val nonFloodedPositions = heightMap.indices.flatMap { row ->
-            heightMap[row].indices.filter { col -> heightMap[row][col] < 9 }.map { row to it }
-        }.toMutableList()
-        val basins = mutableListOf<List<Pair<Int, Int>>>()
-        while (nonFloodedPositions.isNotEmpty()) {
-            val basin = mutableListOf(nonFloodedPositions.removeFirst())
-            do {
-                val connectedPositions =
-                    nonFloodedPositions.filter { candidate -> basin.any { it.isNeighbour(candidate) } }
-                basin.addAll(connectedPositions)
-                nonFloodedPositions.removeAll(connectedPositions)
-            } while (connectedPositions.isNotEmpty())
-            basins.add(basin)
+        val basinMap: HeightMap = Array(heightMap.size) { row ->
+            Array(heightMap[row].size) { -1 }
         }
-        return basins.map { it.size }.sortedDescending().take(3).reduce { a, b -> a * b }
+        var basinIndex = 0
+        do {
+            val seed = heightMap.indices.firstNotNullOfOrNull { row ->
+                heightMap[row].indices.firstNotNullOfOrNull { col ->
+                    if (heightMap[row][col] < 9 && basinMap[row][col] < 0) row to col
+                    else null
+                }
+            }
+            seed?.let { flood(it, basinIndex++, heightMap, basinMap) }
+        } while (seed != null)
+        return basinMap.flatMap { it.toList() }
+            .filter { it > 0 } //remove walls
+            .groupingBy { it }//group by basin index
+            .eachCount().values//get the counts
+            .sortedDescending()
+            .take(3).reduce { a, b -> a * b }
     }
 
     val testInput = readInput("Day09_test")
