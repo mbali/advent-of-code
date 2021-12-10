@@ -25,6 +25,8 @@ fun main() {
             }
             firstErrorPosition = errorPosition
         }
+
+        fun isIncomplete() = expectedClosers.isNotEmpty() && firstErrorPosition == null
     }
 
     fun part1(input: List<String>): Int {
@@ -39,11 +41,27 @@ fun main() {
             .map { Parser(it) }
             .filter { it.firstErrorPosition != null }
             .map { it.input[it.firstErrorPosition!!] }
-            .sumOf { scores.getOrDefault(it, 0) }
+            .sumOf { scores.getValue(it) }
     }
 
-    fun part2(input: List<String>): Int {
-        TODO()
+    fun part2(input: List<String>): Long {
+        val valuesOfClosers = mapOf(
+            ')' to 1,
+            ']' to 2,
+            '}' to 3,
+            '>' to 4
+        )
+        val scores = input
+            .map { Parser(it) }
+            .filter { it.isIncomplete() }
+            .map {
+                it.expectedClosers
+                    .map { char -> valuesOfClosers.getValue(char) }
+                    .fold(0L) { acc, score -> acc * 5 + score }
+            }
+            .sorted()
+        check(scores.size.mod(2) == 1) { "Should have an odd result set" }
+        return scores[scores.size / 2]
     }
 
     val testInput = readInput("Day10_test")
@@ -52,6 +70,6 @@ fun main() {
     val input = readInput("Day10")
     println(part1(input))
 
-    check(part2(testInput) == TODO())
+    check(part2(testInput) == 288957L)
     println(part2(input))
 }
