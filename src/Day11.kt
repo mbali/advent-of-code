@@ -30,6 +30,7 @@ fun main() {
         return result
     }
 
+
     fun readInput(input: List<String>): IntArray {
         return input.flatMap {
             it.map { char -> char.digitToInt() }
@@ -37,15 +38,17 @@ fun main() {
     }
 
     fun part1(input: List<String>): Int {
-        val result = (1..100).scan(readInput(input)) { acc, _ ->
-            step(acc)
-        }.sumOf { it.count { level -> level == 0 } }
-        return result
-
+        return generateSequence(readInput(input)) { step(it) }
+            .drop(1) //drop the initial state
+            .take(100) // take 100 steps
+            .map { it.count { level -> level == 0 } } //the zeroes are the ones that flashed
+            .sum()
     }
 
     fun part2(input: List<String>): Int {
-        TODO()
+        return generateSequence(readInput(input)) { step(it) }
+            .takeWhile { it.any { level -> level > 0 } } //the last value is the first state before the synchronized flash
+            .count() //with the initial state, the count is the expected value
     }
 
     val testInput = readInput("Day11_test")
@@ -54,6 +57,6 @@ fun main() {
     val input = readInput("Day11")
     println(part1(input))
 
-    check(part2(testInput) == TODO())
+    check(part2(testInput) == 195)
     println(part2(input))
 }
