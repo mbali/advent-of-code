@@ -2,11 +2,14 @@ fun main() {
 
     fun isSmall(id: String) = id.all { it.isLowerCase() }
 
-    fun toNeigbourhoods(input: List<String>): Map<String, List<String>> {
+    fun toNeigbourhoods(input: List<String>, start: String = "start", end: String = "end"): Map<String, List<String>> {
         val vertices =
             input.flatMap { line ->
                 val (from, to) = line.split('-')
-                listOf(from to to, to to from)
+                listOf(
+                    from to to,
+                    to to from
+                ).filter { it.second != start && it.first != end } //start is a source, end is a sink
             }.toSet()
         return vertices.groupBy { it.first }.mapValues { v -> v.value.map { it.second }.toList() }
     }
@@ -15,25 +18,33 @@ fun main() {
         neigbourhoods: Map<String, List<String>>,
         prefix: List<String> = emptyList(),
         currentNode: String = "start",
-        targetNode: String = "end"
+        targetNode: String = "end",
+        routeValidator: (List<String>) -> Boolean
     ): List<List<String>> {
         val route = prefix + currentNode
+        if (!routeValidator(route)) {
+            return emptyList()
+        }
         if (currentNode == targetNode) {
             return listOf(route)
         }
         return neigbourhoods.getValue(currentNode).flatMap { next ->
-            if (isSmall(next) && next in prefix) emptyList()
-            else routes(neigbourhoods, route, next, targetNode)
+            routes(neigbourhoods, route, next, targetNode, routeValidator)
         }
     }
 
 
     fun part1(input: List<String>): Int {
-        return routes(toNeigbourhoods(input)).size
+        return routes(toNeigbourhoods(input)) { route ->
+            route.filter { isSmall(it) }.groupingBy { it }.eachCount().all { it.value <= 1 }
+        }.size
     }
 
     fun part2(input: List<String>): Int {
-        TODO()
+        return routes(toNeigbourhoods(input)) { route ->
+            val counts = route.filter { isSmall(it) }.groupingBy { it }.eachCount().values
+            counts.all { it <= 2 } && counts.count { it == 2 } <= 1
+        }.size
     }
 
     val testInput1 = readInput("Day12_test1")
@@ -46,6 +57,8 @@ fun main() {
     val input = readInput("Day12")
     println(part1(input))
 
-    check(part2(testInput1) == TODO())
+    check(part2(testInput1) == 36)
+    check(part2(testInput2) == 103)
+    check(part2(testInput3) == 3509)
     println(part2(input))
 }
