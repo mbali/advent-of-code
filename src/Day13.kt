@@ -1,20 +1,20 @@
 fun main() {
     class FoldInstruction(val x: Int? = null, val y: Int? = null) {
         fun transform(positions: Set<Pair<Int, Int>>): Set<Pair<Int, Int>> =
-            positions.mapNotNull { transform(it) }.normalize().toSet()
+            positions.mapNotNull { it.transform() }.normalize()
 
-        private fun transform(position: Pair<Int, Int>): Pair<Int, Int>? =
-            if (position.first == x || position.second == y) null
-            else foldAt(position.first, x) to foldAt(position.second, y)
+        private fun Pair<Int, Int>.transform(): Pair<Int, Int>? =
+            if (first == x || second == y) null
+            else first.foldAt(x) to second.foldAt(y)
 
-        private fun foldAt(what: Int, where: Int?) =
-            if (where == null || what < where) what
-            else 2 * where - what
+        private fun Int.foldAt(where: Int?) =
+            if (where == null || this < where) this
+            else 2 * where - this
 
-        private fun Collection<Pair<Int, Int>>.normalize(): List<Pair<Int, Int>> {
+        private fun Collection<Pair<Int, Int>>.normalize(): Set<Pair<Int, Int>> {
             val minX = this.minOf { it.first }
             val minY = this.minOf { it.second }
-            return this.map { it.first - minX to it.second - minY }
+            return this.map { it.first - minX to it.second - minY }.toSet()
         }
     }
 
@@ -47,14 +47,31 @@ fun main() {
         return PuzzleInput(dots, instructions)
     }
 
+    fun Set<Pair<Int, Int>>.printCode(header: String) {
+        val maxX = this.maxOf { it.first }
+        val maxY = this.maxOf { it.second }
+        println(header)
+        println("----------------")
+        for (y in 0..maxY) {
+            for (x in 0..maxX) {
+                print(if (x to y in this) "\u2588" else " ")
+            }
+            println()
+        }
+        println("----------------")
+    }
+
     fun part1(input: List<String>): Int {
         val puzzle = input.parseInput()
         return puzzle.instructions.take(1).fold(puzzle.dots) { dots, instruction -> instruction.transform(dots) }
             .count()
     }
 
-    fun part2(input: List<String>): Int {
-        TODO()
+    fun part2(header: String, input: List<String>): Int {
+        val puzzle = input.parseInput()
+        val result = puzzle.instructions.fold(puzzle.dots) { dots, instruction -> instruction.transform(dots) }
+        result.printCode(header)
+        return result.count()
     }
 
     val testInput = readInput("Day13_test")
@@ -63,6 +80,6 @@ fun main() {
     val input = readInput("Day13")
     println(part1(input))
 
-    check(part2(testInput) == TODO())
-    println(part2(input))
+    check(part2("TEST", testInput) == 16)
+    println(part2("REAL", input))
 }
