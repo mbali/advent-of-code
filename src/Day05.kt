@@ -57,4 +57,10 @@ fun main() {
 
     check(part2(testInput) == 12)
     println(part2(input))
+
+    for (round in 1..3) {
+        println("------------ Round $round!-------- FIGHT!")
+        benchmark("part1", 1000) { part1(input) }
+        benchmark("part2", 1000) { part2(input) }
+    }
 }

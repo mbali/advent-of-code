@@ -67,10 +67,10 @@ fun main() {
             .count()
     }
 
-    fun part2(header: String, input: List<String>): Int {
+    fun part2(header: String, input: List<String>, quiet: Boolean = false): Int {
         val puzzle = input.parseInput()
         val result = puzzle.instructions.fold(puzzle.dots) { dots, instruction -> instruction.transform(dots) }
-        result.printCode(header)
+        if (!quiet) result.printCode(header)
         return result.count()
     }
 
@@ -82,4 +82,10 @@ fun main() {
 
     check(part2("TEST", testInput) == 16)
     println(part2("REAL", input))
+
+    for (round in 1..3) {
+        println("------------ Round $round!-------- FIGHT!")
+        benchmark("part1", 1000) { part1(input) }
+        benchmark("part2", 1000) { part2("benchmark", input, true) }
+    }
 }
