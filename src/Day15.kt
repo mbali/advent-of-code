@@ -5,30 +5,27 @@ fun main() {
         val neighbours: MutableSet<Node> = mutableSetOf()
     }
 
-    fun calculateDistancesFrom(start: Node): Map<Node, Int> {
-        return buildMap {
-            val queue = PriorityQueue<Pair<Node, Int>>(compareBy { it.second })
-            //seed queue with neighbours
-            start.neighbours.forEach { queue.offer(it to it.cost) }
-            do {
-                val maybeNext = queue.poll()
-                maybeNext?.let { next ->
-                    val nextNode = next.first
+    fun calculateDistancesFrom(start: Node, target: Node): Int {
+        val queue = PriorityQueue<Pair<Node, Int>>(compareBy { it.second })
+        val seen = mutableSetOf<Node>()
+        //seed queue with neighbours
+        start.neighbours.forEach { queue.offer(it to it.cost) }
+        do {
+            val maybeNext = queue.poll()
+            maybeNext?.let { next ->
+                val nextNode = next.first
+                if (!seen.contains(nextNode)) {
                     val distance = next.second
-                    put(nextNode, distance)
-                    nextNode.neighbours.filter { !containsKey(it) }.forEach { candidate ->
+                    if (nextNode == target) return distance
+                    seen.add(nextNode)
+                    nextNode.neighbours.filter { !seen.contains(it) }.forEach { candidate ->
                         val candidateDistance = distance + candidate.cost
-                        val storedElement = queue.firstOrNull { it.first == candidate }
-                        if (storedElement != null && storedElement.second > candidateDistance) {
-                            queue.remove(storedElement)
-                        }
-                        if (storedElement == null || storedElement.second > candidateDistance) {
-                            queue.offer(candidate to candidateDistance)
-                        }
+                        queue.offer(candidate to candidateDistance)
                     }
                 }
-            } while (maybeNext != null)
-        }
+            }
+        } while (maybeNext != null)
+        SHOULD_NOT_REACH()
     }
 
     fun List<String>.parseInput(multiplier: Int = 1): List<Node> {
@@ -60,13 +57,8 @@ fun main() {
     fun solution(input: List<String>, repetitions: Int = 1): Int {
         val parsed = input.parseInput(repetitions)
         val start = parsed.first { it.x == 0 && it.y == 0 }
-        val distances = calculateDistancesFrom(start)
-        return distances
-            .entries
-            .sortedWith(compareBy<Map.Entry<Node, Int>> { it.key.x }
-                .thenComparingInt { it.key.y })
-            .last()
-            .value
+        val target = parsed.sortedWith(compareBy<Node> { it.x }.thenComparingInt { it.y }).last()
+        return calculateDistancesFrom(start, target)
     }
 
     fun part1(input: List<String>): Int {
@@ -85,4 +77,11 @@ fun main() {
 
     check(part2(testInput) == 315)
     println(part2(input))
+
+    for (round in 1..3) {
+        println("------------ Round $round!-------- FIGHT!")
+        benchmark("part1", 30) { part1(input) }
+        benchmark("part2", 30) { part2(input) }
+    }
+
 }
