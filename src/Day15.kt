@@ -31,15 +31,21 @@ fun main() {
         }
     }
 
-    fun List<String>.parseInput(): List<Node> {
+    fun List<String>.parseInput(multiplier: Int = 1): List<Node> {
+        val costs = this.map { line -> line.map { it.digitToInt() }.toTypedArray() }.toTypedArray()
+        val scannedX = costs.first().size
+        val scannedY = costs.size
+        val maxX = scannedX * multiplier - 1
+        val maxY = scannedY * multiplier - 1
+        fun costAt(x: Int, y: Int): Int =
+            ((costs[y % scannedY][x % scannedX] - 1) + x / scannedX + y / scannedY) % 9 + 1
+
         return buildMap<Pair<Int, Int>, Node> {
-            this@parseInput.forEachIndexed { y, line ->
-                line.forEachIndexed { x, digitChar ->
-                    put(x to y, Node(x, y, digitChar.digitToInt()))
+            for (x in 0..maxX) {
+                for (y in 0..maxY) {
+                    put(x to y, Node(x, y, costAt(x, y)))
                 }
             }
-            val maxX = keys.maxOf { it.first }
-            val maxY = keys.maxOf { it.second }
             for (x in 0..maxX) {
                 for (y in 0..maxY) {
                     listOf(-1 to 0, 1 to 0, 0 to -1, 0 to 1)
@@ -51,9 +57,8 @@ fun main() {
         }.values.toList()
     }
 
-
-    fun part1(input: List<String>): Int {
-        val parsed = input.parseInput()
+    fun solution(input: List<String>, repetitions: Int = 1): Int {
+        val parsed = input.parseInput(repetitions)
         val start = parsed.first { it.x == 0 && it.y == 0 }
         val distances = calculateDistancesFrom(start)
         return distances
@@ -64,8 +69,12 @@ fun main() {
             .value
     }
 
+    fun part1(input: List<String>): Int {
+        return solution(input)
+    }
+
     fun part2(input: List<String>): Int {
-        TODO()
+        return solution(input, 5)
     }
 
     val testInput = readInput("Day15_test")
@@ -74,6 +83,6 @@ fun main() {
     val input = readInput("Day15")
     println(part1(input))
 
-    check(part2(testInput) == TODO())
+    check(part2(testInput) == 315)
     println(part2(input))
 }
