@@ -1,13 +1,18 @@
 sealed class BitPacket(val version: Int) {
     abstract fun value(): Long
+    open fun part1Score() = version.toLong()
 
-    class Literal(version: Int, val literal: Long) :
+    class Literal(version: Int, private val literal: Long) :
         BitPacket(version) {
         override fun value(): Long = literal
     }
 
     sealed class Operator(version: Int, val subPackets: List<BitPacket>) :
         BitPacket(version) {
+        override fun part1Score(): Long =
+            subPackets.fold(version.toLong()) { sum, packet -> sum + packet.part1Score() }
+
+
         class Sum(version: Int, subPackets: List<BitPacket>) :
             Operator(version, subPackets) {
             override fun value(): Long = subPackets.sumOf { it.value() }
@@ -119,26 +124,22 @@ fun main() {
             it.digitToInt(16).toString(2).padStart(4, '0')
         }.joinToString("")
 
+    fun solution(input: String, evaluator: (BitPacket) -> Long): Long {
+        return evaluator(BitPacket.parse(hexToBinary(input)).first!!)
+    }
 
-    fun part1(input: String): Int {
-        val packet = BitPacket.parse(hexToBinary(input)).first!!
-        fun score(packet: BitPacket): Int {
-            return packet.version + when (packet) {
-                is BitPacket.Operator -> packet.subPackets.sumOf { score(it) }
-                else -> 0
-            }
-        }
-        return score(packet)
+    fun part1(input: String): Long {
+        return solution(input) { it.part1Score() }
     }
 
     fun part2(input: String): Long {
-        return BitPacket.parse(hexToBinary(input)).first!!.value()
+        return solution(input) { it.value() }
     }
 
-    check(part1("8A004A801A8002F478") == 16)
-    check(part1("620080001611562C8802118E34") == 12)
-    check(part1("C0015000016115A2E0802F182340") == 23)
-    check(part1("A0016C880162017C3686B18A3D4780") == 31)
+    check(part1("8A004A801A8002F478") == 16L)
+    check(part1("620080001611562C8802118E34") == 12L)
+    check(part1("C0015000016115A2E0802F182340") == 23L)
+    check(part1("A0016C880162017C3686B18A3D4780") == 31L)
 
     val input = readInput("Day16").first()
     println(part1(input))
@@ -152,4 +153,12 @@ fun main() {
     check(part2("9C005AC2F8F0") == 0L)
     check(part2("9C0141080250320F1802104A08") == 1L)
     println(part2(input))
+
+    for (round in 1..3) {
+        println("------------ Round $round!-------- FIGHT!")
+        benchmark("parse", 1000) { BitPacket.parse(hexToBinary(input)) }
+        benchmark("part1", 1000) { part1(input) }
+        benchmark("part2", 1000) { part2(input) }
+    }
+
 }
