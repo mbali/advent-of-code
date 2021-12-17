@@ -17,52 +17,70 @@ fun main() {
         )
     }
 
+    fun String.toArea(): Area {
+        (Regex("""target area: x=(?<minX>-?\d+)\.\.(?<maxX>-?\d+), y=(?<minY>-?\d+)\.\.(?<maxY>-?\d+)""")
+            .matchEntire(this) ?: throw IllegalArgumentException("Could not parse area >$this<"))
+            .groups.let {
+                return Area(
+                    it["minX"]!!.value.toInt()..it["maxX"]!!.value.toInt(),
+                    it["minY"]!!.value.toInt()..it["maxY"]!!.value.toInt()
+                )
+            }
+    }
+
     fun Area.contains(position: Position): Boolean = position.x in xRange && position.y in yRange
 
-    fun part1(target: Area): Int {
-        //vx should be a value, that "decreases" to 0 in the target area
-        //the absolute value of vx must be between 0 and the target areas maximum distance
-        val vx = if (0 in target.xRange)
-            0
-        else {
-            val signX = target.xRange.first.sign
-            val absXRange = min(
-                target.xRange.first.absoluteValue,
-                target.xRange.last.absoluteValue
-            )..max(target.xRange.first.absoluteValue, target.xRange.last.absoluteValue)
-            val absVx = (1..absXRange.last).first { it * (it + 1) / 2 in absXRange }
-            absVx * signX
-        }
-        val minVY = min(target.yRange.first, target.yRange.last)
-        var maxY = Int.MIN_VALUE
-        for (vy in minVY..500) { //TODO: sensible value
-            val trajectory =
-                State(Speed(vx, vy)).trajectory().takeWhile { it.speed.vy >= 0 || it.position.y >= target.yRange.first }
-                    .toList()
-            if (trajectory.any { target.contains(it.position) }) {
-                maxY = max(maxY, trajectory.maxOf { it.position.y })
+    fun Area.hittingTrajectories(position: Position = Position(0, 0)): List<Sequence<State>> {
+        if (position.x != 0 && position.y != 0) {
+            val transformedArea = Area(
+                xRange.first - position.x..xRange.last - position.x,
+                yRange.first - position.y..yRange.last - position.y
+            )
+            return transformedArea.hittingTrajectories().map { trajectory ->
+                trajectory.map {
+                    it.copy(
+                        position = Position(it.position.x + position.x, it.position.y + position.y)
+                    )
+                }
             }
         }
-        return maxY
+        val vXRange = if (0 in xRange) {
+            xRange
+        } else {
+            val signX = xRange.first.sign
+            val absXRange = min(
+                xRange.first.absoluteValue,
+                xRange.last.absoluteValue
+            )..max(xRange.first.absoluteValue, xRange.last.absoluteValue)
+            val minAbsVx = (1..absXRange.last).first { it * (it + 1) / 2 >= absXRange.first }
+            if (signX >= 0) minAbsVx..absXRange.last
+            else -minAbsVx..-absXRange.first
+        }
+        val vYRange = min(yRange.first, 0)..500 //TODO: upper limit
+        return vXRange.flatMap { vx ->
+            vYRange.mapNotNull { vy ->
+                val trajectory = State(Speed(vx, vy)).trajectory()
+                if (trajectory.takeWhile { it.speed.vy >= 0 || it.position.y >= yRange.first }
+                        .any { this.contains(it.position) })
+                    trajectory.takeWhile { !this.contains(it.position) }
+                else null
+            }
+        }
+    }
+
+
+    fun part1(target: Area): Int {
+        return target.hittingTrajectories().map { t -> t.maxOf { it.position.y } }.maxOf { it }
     }
 
     fun part2(target: Area): Int {
-        var count = 0
-        for (vx in -500..500) { //TODO: calculate interval
-            for (vy in -500..500) { //TODO: some heuristics
-                State(Speed(vx, vy)).trajectory().takeWhile { it.speed.vy >= 0 || it.position.y >= target.yRange.first }
-                    .firstOrNull { target.contains(it.position) }?.let {
-                        count++
-                    }
-            }
-        }
-        return count
+        return target.hittingTrajectories().size
     }
 
-    val testInput = Area(20..30, -10..-5)
-    val input = Area(195..238, -93..-67)
+    val testInput = readInput("Day17_test").first().toArea()
     check(part1(testInput) == 45)
 
+    val input = readInput("Day17").first().toArea()
     println(part1(input))
 
     check(part2(testInput) == 112)
