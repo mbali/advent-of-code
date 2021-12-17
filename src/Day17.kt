@@ -56,7 +56,10 @@ fun main() {
             if (signX >= 0) minAbsVx..absXRange.last
             else -minAbsVx..-absXRange.first
         }
-        val vYRange = min(yRange.first, 0)..500 //TODO: upper limit
+        val vYRange = min(
+            yRange.first,
+            0
+        )..if (yRange.first < 0) yRange.first.absoluteValue else 500 //if we shoot upward then wer will reach y=0 with vy=-vy0, so the next step should not overstep
         return vXRange.flatMap { vx ->
             vYRange.mapNotNull { vy ->
                 val trajectory = State(Speed(vx, vy)).trajectory()
@@ -85,4 +88,11 @@ fun main() {
 
     check(part2(testInput) == 112)
     println(part2(input))
+
+    for (round in 1..3) {
+        println("------------ Round $round!-------- FIGHT!")
+        benchmark("part1", 100) { part1(input) }
+        benchmark("part2", 100) { part2(input) }
+    }
+
 }
