@@ -1,102 +1,174 @@
-sealed class SnailFishNumber(var parent: NumberPair? = null) {
+import java.util.concurrent.atomic.AtomicInteger
+
+sealed class SnailFishNumber() {
     abstract fun magnitude(): Long
-    class RegularNumber(val value: Int, parent: NumberPair? = null) : SnailFishNumber(parent) {
+    data class RegularNumber(val value: Int, private val id: Int = generateId()) : SnailFishNumber() {
         override fun magnitude() = value.toLong()
         override fun toString() = value.toString()
     }
 
-    class NumberPair(val left: SnailFishNumber, val right: SnailFishNumber, parent: NumberPair? = null) :
-        SnailFishNumber(parent) {
-        init {
-            left.parent = this
-            right.parent = this
-        }
-
+    data class NumberPair(val left: SnailFishNumber, val right: SnailFishNumber, private val id: Int = generateId()) :
+        SnailFishNumber() {
         override fun magnitude() = 3 * left.magnitude() + 2 * right.magnitude()
         override fun toString() = "[${left},${right}]"
     }
 
-    private fun explodeAt(left: RegularNumber?, exploded: NumberPair, right: RegularNumber?): SnailFishNumber {
-        if (exploded.left !is RegularNumber || exploded.right !is RegularNumber) throw IllegalArgumentException("Exploded pair must contain regular numbers")
-        return when (this) {
-            is RegularNumber -> RegularNumber(
-                if (this === left) value + exploded.left.value
-                else if (this === right) value + exploded.right.value
-                else value
-            )
-            is NumberPair -> if (this === exploded) RegularNumber(0) else {
-                NumberPair(this.left.explodeAt(left, exploded, right), this.right.explodeAt(left, exploded, right))
+    /**
+     * Detect route to the first node, which satisfies the predicate
+     * The route is returned in reverse order (eg.: its first element is the node that satisfies the predicate)
+     * If no node found satisfying the predicate then null is returned
+     */
+    private fun detectRouteToFirst(
+        currentDepth: Int = 0, predicate: (node: SnailFishNumber, depth: Int) -> Boolean
+    ): List<SnailFishNumber>? {
+        return when {
+            predicate(this, currentDepth) -> listOf(this)
+            this is NumberPair -> {
+                (left.detectRouteToFirst(currentDepth + 1, predicate) ?: right.detectRouteToFirst(
+                    currentDepth + 1, predicate
+                ))?.let {
+                    it + this
+                }
             }
+            else -> null
         }
     }
 
-    private fun splitAt(number: RegularNumber): SnailFishNumber {
+    /**
+     * Explode a given NumberPair node, and return the new SnailFishNumber after the explosion
+     *
+     * @param left The regular number node to the left (if any)
+     * @param toExplode The pair node to explode
+     * @param right The regular number node to the right (if any)
+     * @param affectedNodes The pair nodes that are affected by the explosion (ancestors of left, right, and toExplode)
+     *
+     * @return the number value after the explosion
+     */
+    private fun explodeAt(
+        left: RegularNumber?,
+        toExplode: NumberPair,
+        right: RegularNumber?,
+        affectedNodes: Set<SnailFishNumber>
+    ): SnailFishNumber {
+        if (!affectedNodes.contains(this)) {
+            return this
+        }
+        if (toExplode.left !is RegularNumber || toExplode.right !is RegularNumber) throw IllegalArgumentException("Exploded pair must contain regular numbers")
         return when (this) {
-            is NumberPair -> NumberPair(left.splitAt(number), right.splitAt(number))
             is RegularNumber ->
-                if (this === number) NumberPair(RegularNumber(this.value / 2), RegularNumber((this.value + 1) / 2))
-                else RegularNumber(this.value)
+                if (this === left) RegularNumber(value + toExplode.left.value)
+                else if (this === right) RegularNumber(value + toExplode.right.value)
+                else this  //should not happen
+            is NumberPair ->
+                if (this === toExplode) RegularNumber(0)
+                else NumberPair(
+                    this.left.explodeAt(left, toExplode, right, affectedNodes),
+                    this.right.explodeAt(left, toExplode, right, affectedNodes)
+                )
         }
     }
 
-    private fun copy(): SnailFishNumber =
-        when (this) {
-            is RegularNumber -> RegularNumber(value)
-            is NumberPair -> NumberPair(left.copy(), right.copy())
+    private fun splitAt(number: RegularNumber, affectedNodes: Set<SnailFishNumber>): SnailFishNumber {
+        if (!affectedNodes.contains(this)) {
+            return this
         }
-
-
-    private fun nodesAndDepthsInOrder(depth: Int = 0): List<Pair<SnailFishNumber, Int>> {
         return when (this) {
-            is RegularNumber -> listOf(this to depth)
-            is NumberPair -> buildList {
-                addAll(left.nodesAndDepthsInOrder(depth + 1))
-                add(this@SnailFishNumber to depth)
-                addAll(right.nodesAndDepthsInOrder(depth + 1))
+            is NumberPair -> NumberPair(
+                left.splitAt(number, affectedNodes),
+                right.splitAt(number, affectedNodes)
+            )
+            is RegularNumber -> NumberPair(
+                RegularNumber(this.value / 2),
+                RegularNumber((this.value + 1) / 2)
+            )
+        }
+    }
+
+    /**
+     * Explode the number if needed
+     *
+     * If any pair is nested inside four pairs, the leftmost such pair explodes.
+     *
+     * To explode a pair, the pair's left value is added to the first regular number to the left of the exploding pair (if any),
+     * and the pair's right value is added to the first regular number to the right of the exploding pair (if any).
+     * Exploding pairs will always consist of two regular numbers. Then, the entire exploding pair is replaced with the regular number 0.
+     *
+     * @return The new number after the explosion or null if no explosion took place
+     */
+    private fun maybeExplode(): SnailFishNumber? {
+        return detectRouteToFirst { node, depth -> depth >= 4 && node is NumberPair && node.left is RegularNumber && node.right is RegularNumber }
+            ?.let { routeToExplosion ->
+                var regularNumberToTheLeft: RegularNumber? = null
+                var regularNumberToTheRight: RegularNumber? = null
+                val affectedNodes = routeToExplosion.toMutableSet()
+                routeToExplosion.windowed(2).forEach { (node, parent) ->
+                    val parentPair = parent as NumberPair
+                    if (regularNumberToTheRight == null && parentPair.left === node) {
+                        generateSequence(parentPair.right) {
+                            when (it) {
+                                is RegularNumber -> null
+                                is NumberPair -> it.left
+                            }
+                        }.forEach {
+                            affectedNodes += it
+                            if (it is RegularNumber) regularNumberToTheRight = it
+                        }
+                    }
+                    if (regularNumberToTheLeft == null && parentPair.right === node) {
+                        generateSequence(parentPair.left) {
+                            when (it) {
+                                is RegularNumber -> null
+                                is NumberPair -> it.right
+                            }
+                        }.forEach {
+                            affectedNodes += it
+                            if (it is RegularNumber) regularNumberToTheLeft = it
+                        }
+                    }
+                }
+                explodeAt(
+                    regularNumberToTheLeft,
+                    routeToExplosion.first() as NumberPair,
+                    regularNumberToTheRight,
+                    affectedNodes
+                )
             }
+    }
+
+    /**
+     * Split the number if needed
+     *
+     * If any regular number is 10 or greater, the leftmost such regular number splits.
+     * To split a regular number, replace it with a pair; the left element of the pair should be the regular number
+     * divided by two and rounded down, while the right element of the pair should be the regular number divided by two and rounded up.
+     *
+     * @return the new number after splitting, or null if no splitting took place
+     */
+    private fun maybeSplit(): SnailFishNumber? {
+        return detectRouteToFirst { node, _ -> node is RegularNumber && node.value >= 10 }?.let {
+            splitAt(it.first() as RegularNumber, it.toSet())
         }
     }
 
     protected fun reduce(): SnailFishNumber {
         var reduced = this
         do {
-            val nodesAndDepths = reduced.nodesAndDepthsInOrder()
-            val explodingPair = nodesAndDepths.filter {
-                val node = it.first
-                it.second >= 4 && node is NumberPair && node.left is RegularNumber && node.right is RegularNumber
-            }.map { it.first }.filterIsInstance<NumberPair>().firstOrNull()
-            if (explodingPair != null) {
-                var pivotSeen = false
-                var left: RegularNumber? = null
-                var right: RegularNumber? = null
-                nodesAndDepths.map { it.first }.forEach { number ->
-                    if (number === explodingPair) pivotSeen = true
-                    else if (number is RegularNumber && number.parent !== explodingPair) {
-                        if (!pivotSeen) left = number
-                        else if (right == null) right = number
-                    }
-                }
-                reduced = reduced.explodeAt(left, explodingPair, right)
-            }
-            val splittingNode: RegularNumber? =
-                if (explodingPair != null) null
-                else nodesAndDepths
-                    .map { it.first }
-                    .filterIsInstance<RegularNumber>()
-                    .filter { it.value >= 10 }
-                    .firstOrNull()
-            if (splittingNode != null) {
-                reduced = reduced.splitAt(splittingNode)
-            }
-        } while (explodingPair != null || splittingNode != null)
+            val nextStep = reduced.run { maybeExplode() ?: maybeSplit() }?.also { reduced = it }
+        } while (nextStep != null)
         return reduced
     }
 
     operator fun plus(other: SnailFishNumber): SnailFishNumber {
-        return NumberPair(this.copy(), other.copy()).reduce()
+        return NumberPair(this, other).reduce()
     }
 
     companion object {
+        private val idGenerator: AtomicInteger = AtomicInteger(0)
+
+        protected fun generateId(): Int {
+            return idGenerator.getAndIncrement()
+        }
+
         private fun parse(input: String, position: Int = 0): Pair<SnailFishNumber, Int> {
             val firstChar = input[position]
             if (firstChar.isDigit()) {
@@ -158,4 +230,11 @@ fun main() {
 
     check(part2(testInput) == 3993L)
     println(part2(input))
+
+    for (round in 1..3) {
+        println("------------ Round $round!-------- FIGHT!")
+        benchmark("part1", 100) { part1(input) }
+        benchmark("part2", 100) { part2(input) }
+    }
+
 }
