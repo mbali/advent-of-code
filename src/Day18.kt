@@ -61,10 +61,10 @@ sealed class SnailFishNumber(var parent: NumberPair? = null) {
         var reduced = this
         do {
             val nodesAndDepths = reduced.nodesAndDepthsInOrder()
-            val explodingPair = nodesAndDepths.firstOrNull {
+            val explodingPair = nodesAndDepths.filter {
                 val node = it.first
                 it.second >= 4 && node is NumberPair && node.left is RegularNumber && node.right is RegularNumber
-            }?.first as NumberPair?
+            }.map { it.first }.filterIsInstance<NumberPair>().firstOrNull()
             if (explodingPair != null) {
                 var pivotSeen = false
                 var left: RegularNumber? = null
@@ -82,8 +82,8 @@ sealed class SnailFishNumber(var parent: NumberPair? = null) {
                 if (explodingPair != null) null
                 else nodesAndDepths
                     .map { it.first }
-                    .filter { it is RegularNumber && it.value >= 10 }
-                    .map { it as RegularNumber }
+                    .filterIsInstance<RegularNumber>()
+                    .filter { it.value >= 10 }
                     .firstOrNull()
             if (splittingNode != null) {
                 reduced = reduced.splitAt(splittingNode)
@@ -130,8 +130,11 @@ fun main() {
         return input.map { SnailFishNumber.parse(it) }.reduce { acc, number -> acc + number }.magnitude()
     }
 
-    fun part2(input: List<String>): Int {
-        TODO()
+    fun part2(input: List<String>): Long {
+        val numbers = input.map { SnailFishNumber.parse(it) }
+        return numbers.mapIndexed { i, n ->
+            numbers.filterIndexed { index, _ -> index != i }.maxOf { (n + it).magnitude() }
+        }.maxOf { it }
     }
 
     listOf(
@@ -153,6 +156,6 @@ fun main() {
     val input = readInput("Day18")
     println(part1(input))
 
-    check(part2(testInput) == TODO())
+    check(part2(testInput) == 3993L)
     println(part2(input))
 }
