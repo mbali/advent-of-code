@@ -1,5 +1,6 @@
+import Day19.locateScanners
 import Day19.parseScanResults
-import Day19.toScannerPositions
+import Day19.transform
 
 private object Day19 {
     private val SCANNER_REGEX = Regex("""--- scanner (?<id>\d+) ---""")
@@ -10,6 +11,13 @@ private object Day19 {
     data class ScanResult(val scannerId: Int, val beaconLocations: List<Vec3>)
 
     data class ScannerPosition(val orientation: Mat3, val location: Vec3)
+
+    infix fun ScannerPosition.transform(v: Vec3) = orientation * v + location
+
+    data class Vertex(val from: ScanResult, val to: ScanResult, val relativePosition: ScannerPosition)
+
+    operator fun ScannerPosition.plus(p: ScannerPosition) =
+        ScannerPosition(orientation * p.orientation, location + orientation * p.location)
 
     fun List<String>.parseScanResults(): List<ScanResult> {
         var i = 0
@@ -57,121 +65,76 @@ private object Day19 {
         return null
     }
 
-    private fun getScannerPositionOrNull(
-        scan: ScanResult,
-        measurementsByOrientation: Map<Mat3, List<Vec3>>,
-        knownPositions: Set<Vec3>
-    ): Triple<ScanResult, ScannerPosition, List<Vec3>>? {
-        ORIENTATIONS.asSequence().forEach { orientation ->
-            val orientedCandidatePositions = measurementsByOrientation.getValue(orientation)
-            val offset = getOffsetOrNull(knownPositions, orientedCandidatePositions)
-            if (offset != null) {
-                val position = ScannerPosition(orientation, offset)
-                return Triple(scan, position, orientedCandidatePositions.map { it + offset })
+    fun ScanResult.relativePositionTo(other: ScanResult): ScannerPosition? {
+        val knownPositions = other.beaconLocations.toSet()
+        val result = ORIENTATIONS.firstNotNullOfOrNull { o ->
+            val orientedPositions = this.beaconLocations.map { o * it }
+            getOffsetOrNull(knownPositions, orientedPositions)?.let {
+                ScannerPosition(o, it)
             }
         }
-        return null
+        return result
     }
 
-    /*
-     * This function takes all already known beacon positions, instead of checking pairwise
-     * The end result is the same, but it does not exactly follow the requirements
-     */
-    private fun findNextMatchingPositionUsingAllKnownPositions(
-        possibleOrientations: Map<ScanResult, Map<Mat3, List<Vec3>>>,
-        knownScanResults: Map<ScanResult, Pair<ScannerPosition, List<Vec3>>>,
-        scans: List<ScanResult>
-    ): Triple<ScanResult, ScannerPosition, List<Vec3>>? {
-        val knownPositions = knownScanResults.values.flatMap { it.second }.toSet()
-        scans.forEach scan@{ candidate ->
-            if (candidate in knownScanResults) return@scan
-            val measurementsByOrientation = possibleOrientations.getValue(candidate)
-            getScannerPositionOrNull(candidate, measurementsByOrientation, knownPositions)?.let { return it }
+    fun ScanResult.dfs(
+        vertices: List<Vertex>,
+        position: ScannerPosition = ScannerPosition(Mat3.IDENTITY, Vec3.ZERO),
+        seen: MutableSet<Int> = mutableSetOf()
+    ): List<Pair<ScanResult, ScannerPosition>> {
+        if (scannerId in seen) {
+            return emptyList()
         }
-        return null
+        seen.add(scannerId)
+        return buildList {
+            add(this@dfs to position)
+            addAll(
+                vertices
+                    .filter { it.from == this@dfs }
+                    .flatMap {
+                        it.to.dfs(vertices, position + it.relativePosition, seen)
+                    })
+        }
     }
 
-    private fun findNextMatchingPosition(
-        possibleOrientations: Map<ScanResult, Map<Mat3, List<Vec3>>>,
-        knownScanResults: Map<ScanResult, Pair<ScannerPosition, List<Vec3>>>,
-        scans: List<ScanResult>
-    ): Triple<ScanResult, ScannerPosition, List<Vec3>>? {
-        knownScanResults.values.forEach { (_, knownPositions) ->
-            val knownPositionSet = knownPositions.toSet()
-            scans.forEach scan@{ candidate ->
-                if (candidate in knownScanResults) return@scan
-                val measurementsByOrientation = possibleOrientations.getValue(candidate)
-                getScannerPositionOrNull(candidate, measurementsByOrientation, knownPositionSet)?.let { return it }
+    fun List<ScanResult>.locateScanners(): Map<ScanResult, ScannerPosition> {
+        val vertices =
+            this.flatMap { s1 ->
+                this.filter { it != s1 }
+                    .mapNotNull { s2 -> s2.relativePositionTo(s1)?.let { s2 to it } }
+                    .map { Vertex(s1, it.first, it.second) }
             }
-        }
-        return null
-    }
 
-    fun List<ScanResult>.toScannerPositions(global: Boolean = false): Map<ScanResult, Pair<ScannerPosition, List<Vec3>>> {
-        //precalculate orientations for scans
-        val possibleOrientations: Map<ScanResult, Map<Mat3, List<Vec3>>> = this.associateWith { scan ->
-            ORIENTATIONS.associateWith { orientation ->
-                scan.beaconLocations.map { orientation * it }
-            }
-        }
-        //seed
-        val seedScan = possibleOrientations.entries.first().toPair()
-        val seedOrientation = seedScan.second.entries.first().toPair()
-        val scannerLocations =
-            mutableMapOf(
-                seedScan.first to (ScannerPosition(seedOrientation.first, Vec3.ZERO) to seedOrientation.second)
-            )
-        do {
-            val nextScannerLocation =
-                if (global)
-                    findNextMatchingPositionUsingAllKnownPositions(
-                        possibleOrientations,
-                        scannerLocations,
-                        this
-                    ) else
-                    findNextMatchingPosition(
-                        possibleOrientations,
-                        scannerLocations,
-                        this
-                    )
-            nextScannerLocation?.let {
-                scannerLocations[it.first] = it.second to it.third
-            }
-        } while (nextScannerLocation != null)
-        if (scannerLocations.size != size) {
-            throw IllegalStateException("Unexpected results, not all scanners were placed!")
-        }
-        return scannerLocations.toMap()
+        val start = vertices.first().from
+        return start.dfs(vertices).toMap()
     }
 }
 
 fun main() {
 
-    fun part1(input: List<String>, global: Boolean = false): Int {
-        return input.parseScanResults().toScannerPositions(global).values.flatMap { it.second }.toSet().size
+    fun part1(input: List<String>): Int {
+        return input.parseScanResults().locateScanners()
+            .flatMap { (scan, position) ->
+                scan.beaconLocations.map { position transform it }
+            }.toSet().size
     }
 
-    fun part2(input: List<String>, global: Boolean = false): Int {
-        val scannerLocations = input.parseScanResults().toScannerPositions(global).values.map { it.first.location }
+    fun part2(input: List<String>): Int {
+        val scannerLocations = input.parseScanResults().locateScanners().values.map { it.location }
         return scannerLocations.maxOf { l1 ->
             scannerLocations.maxOf { l2 -> l1 manhattanDistance l2 }
         }
     }
 
     val testInput = readInput("Day19_test")
+    val input = readInput("Day19")
 
     check(part1(testInput) == 79)
-
-    val input = readInput("Day19")
     println(part1(input))
 
     check(part2(testInput) == 3621)
     println(part2(input))
 
-    benchmark("preprocess with pairwise location matching", 10) {
-        input.parseScanResults().toScannerPositions(false)
-    }
-    benchmark("preprocess with global location matching", 10) {
-        input.parseScanResults().toScannerPositions(true)
+    benchmark("positioning scanners", 3) {
+        input.parseScanResults().locateScanners()
     }
 }
