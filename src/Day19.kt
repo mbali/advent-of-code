@@ -1,5 +1,5 @@
 import Day19.parseScanResults
-import Day19.toScannerLocations
+import Day19.toScannerPositions
 import Day19.transform
 
 private object Day19 {
@@ -10,9 +10,9 @@ private object Day19 {
 
     data class ScanResult(val scannerId: Int, val beaconLocations: List<Vec3>)
 
-    data class ScannerLocation(val orientation: Mat3, val location: Vec3)
+    data class ScannerPosition(val orientation: Mat3, val location: Vec3)
 
-    infix fun ScannerLocation.transform(vec: Vec3): Vec3 {
+    infix fun ScannerPosition.transform(vec: Vec3): Vec3 {
         return orientation * vec + location
     }
 
@@ -60,10 +60,10 @@ private object Day19 {
         return null
     }
 
-    private fun findNextMatchingLocation(
-        seen: Map<Int, ScannerLocation>,
+    private fun findNextMatchingPosition(
+        seen: Map<Int, ScannerPosition>,
         scans: List<ScanResult>
-    ): Pair<Int, ScannerLocation>? {
+    ): Pair<Int, ScannerPosition>? {
         scans.asSequence().filter { it.scannerId in seen.keys }.forEach { processedScan ->
             val processedLocation = seen.getValue(processedScan.scannerId)
             val processedBeaconPositions = processedScan.beaconLocations.map { processedLocation transform it }
@@ -72,7 +72,7 @@ private object Day19 {
                     val orientedCandidatePositions = candidateScan.beaconLocations.map { orientation * it }
                     val offset = getOffsetOrNull(processedBeaconPositions, orientedCandidatePositions)
                     if (offset != null) {
-                        return candidateScan.scannerId to ScannerLocation(
+                        return candidateScan.scannerId to ScannerPosition(
                             orientation,
                             offset
                         )
@@ -83,16 +83,16 @@ private object Day19 {
         return null
     }
 
-    fun List<ScanResult>.toScannerLocations(): List<ScannerLocation> {
+    fun List<ScanResult>.toScannerPositions(): List<ScannerPosition> {
         val scannerLocations =
             mutableMapOf(
-                this.first().scannerId to ScannerLocation(
+                this.first().scannerId to ScannerPosition(
                     Mat3(Vec3(x = 1), Vec3(y = 1), Vec3(z = 1)),
                     Vec3.ZERO
                 )
             )
         do {
-            val nextScannerLocation = findNextMatchingLocation(scannerLocations, this)?.also {
+            val nextScannerLocation = findNextMatchingPosition(scannerLocations, this)?.also {
                 scannerLocations[it.first] = it.second
             }
         } while (nextScannerLocation != null)
@@ -102,16 +102,18 @@ private object Day19 {
 
 fun main() {
 
-
     fun part1(input: List<String>): Int {
         val scans = input.parseScanResults()
-        return scans.zip(scans.toScannerLocations()).flatMap { (scan, location) ->
+        return scans.zip(scans.toScannerPositions()).flatMap { (scan, location) ->
             scan.beaconLocations.map { location transform it }
         }.toSet().size
     }
 
     fun part2(input: List<String>): Int {
-        TODO()
+        val scannerLocations = input.parseScanResults().toScannerPositions().map { it.location }
+        return scannerLocations.maxOf { l1 ->
+            scannerLocations.maxOf { l2 -> l1 manhattanDistance l2 }
+        }
     }
 
     val testInput = readInput("Day19_test")
@@ -121,6 +123,6 @@ fun main() {
     val input = readInput("Day19")
     println(part1(input))
 
-    check(part2(testInput) == TODO())
+    check(part2(testInput) == 3621)
     println(part2(input))
 }

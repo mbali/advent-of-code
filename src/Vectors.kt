@@ -1,3 +1,5 @@
+import kotlin.math.absoluteValue
+
 data class Vec3(val x: Int = 0, val y: Int = 0, val z: Int = 0) {
     companion object {
         val ZERO = Vec3()
@@ -15,3 +17,4 @@ operator fun Vec3.minus(v: Vec3) = Vec3(x - v.x, y - v.y, z - v.z)
 infix fun Vec3.dot(v: Vec3) = x * v.x + y * v.y + z * v.z
 infix fun Vec3.cross(v: Vec3) = Vec3(y * v.z - z * v.y, z * v.x - x * v.z, x * v.y - y * v.x)
 operator fun Mat3.times(v: Vec3) = Vec3(x dot v, y dot v, z dot v)
+infix fun Vec3.manhattanDistance(v: Vec3) = (x - v.x).absoluteValue + (y - v.y).absoluteValue + (z - v.z).absoluteValue
