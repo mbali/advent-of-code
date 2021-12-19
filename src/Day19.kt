@@ -1,6 +1,8 @@
 import Day19.locateScanners
 import Day19.parseScanResults
 import Day19.transform
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.runBlocking
 
 private object Day19 {
     private val SCANNER_REGEX = Regex("""--- scanner (?<id>\d+) ---""")
@@ -97,13 +99,16 @@ private object Day19 {
     }
 
     fun List<ScanResult>.locateScanners(): Map<ScanResult, ScannerPosition> {
+        val scans = this
         val vertices =
-            this.flatMap { s1 ->
-                this.filter { it != s1 }
-                    .mapNotNull { s2 -> s2.relativePositionTo(s1)?.let { s2 to it } }
-                    .map { Vertex(s1, it.first, it.second) }
+            runBlocking(Dispatchers.Default) {
+                scans.flatMap { s1 ->
+                    scans.filter { it != s1 }
+                        .map { s1 to it }
+                }.pmap { (s1, s2) ->
+                    s2.relativePositionTo(s1)?.let { Vertex(s1, s2, it) }
+                }.filterNotNull()
             }
-
         val start = vertices.first().from
         return start.dfs(vertices).toMap()
     }
@@ -134,7 +139,7 @@ fun main() {
     check(part2(testInput) == 3621)
     println(part2(input))
 
-    benchmark("positioning scanners", 3) {
+    benchmark("positioning scanners", 10) {
         input.parseScanResults().locateScanners()
     }
 }
