@@ -18,8 +18,13 @@ private object Day19 {
 
     data class Vertex(val from: ScanResult, val to: ScanResult, val relativePosition: ScannerPosition)
 
+    operator fun Vertex.unaryMinus() = Vertex(to, from, -relativePosition)
+
     operator fun ScannerPosition.plus(p: ScannerPosition) =
         ScannerPosition(orientation * p.orientation, location + orientation * p.location)
+
+    operator fun ScannerPosition.unaryMinus() =
+        ScannerPosition(orientation.inverse(), orientation.inverse() * location * -1)
 
     fun List<String>.parseScanResults(): List<ScanResult> {
         var i = 0
@@ -102,12 +107,16 @@ private object Day19 {
         val scans = this
         val vertices =
             runBlocking(Dispatchers.Default) {
-                scans.flatMap { s1 ->
-                    scans.filter { it != s1 }
-                        .map { s1 to it }
+                scans.indices.flatMap { i ->
+                    (i + 1..scans.lastIndex).map { i to it }
+                }.map { (i, j) ->
+                    scans[i] to scans[j]
                 }.pmap { (s1, s2) ->
                     s2.relativePositionTo(s1)?.let { Vertex(s1, s2, it) }
                 }.filterNotNull()
+                    .flatMap { v ->
+                        listOf(v, -v)
+                    }
             }
         val start = vertices.first().from
         return start.dfs(vertices).toMap()
