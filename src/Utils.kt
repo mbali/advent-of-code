@@ -20,7 +20,7 @@ fun String.md5(): String = BigInteger(1, MessageDigest.getInstance("MD5").digest
 inline fun SHOULD_NOT_REACH(): Nothing = throw IllegalStateException("Should not reach")
 
 @OptIn(ExperimentalTime::class)
-fun benchmark(name: String, times: Int, action: () -> Unit) {
+fun benchmark(name: String, times: Int = 1, action: () -> Unit) {
     val avgDuration = (1..times).map { measureTime(action) }.reduce { acc, d -> acc + d }.div(times)
     println("Average duration of $name in $times executions is $avgDuration")
 }
