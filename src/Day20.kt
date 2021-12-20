@@ -25,22 +25,29 @@ private object Day20 {
         fun apply(image: Image): Image {
             val newWidth = image.knownWidth + 2
             val newHeight = image.knownHeight + 2
-            val newPixels = BooleanArray(newWidth * newHeight) { idx ->
-                val x = idx % newWidth - 1
-                val y = idx / newHeight - 1
-                var lookupIndex = 0
-                for (dy in -1..1) {
-                    for (dx in -1..1) {
-                        lookupIndex = lookupIndex * 2 + if (image.at(x + dx, y + dy)) 1 else 0
-                    }
+            val defaultIndex = if (image.defaultPixel) 511 else 0
+            val indices = IntArray(newWidth * newHeight)
+            for (y in 0 until newHeight) {
+                val rowBase = y * newWidth
+                //reuse index of bit to the left
+                var index = defaultIndex
+                for (x in 0 until newWidth) {
+                    index = index.and(0b011011011)
+                        .shl(1) //unset bits that reference to the column sliding out of the window, and shift everything left
+                    if (image.at(x, y - 2)) index =
+                        index or 0b001000000 // if the pixel towards(1,-1) is set, then set the corresponding bit in index
+                    if (image.at(x, y - 1)) index =
+                        index or 0b000001000 //if the pixel to the right is set, set the corresponding bit
+                    if (image.at(x, y)) index = index or 0b000000001 //same for (dx=1,dy=1)
+                    indices[rowBase + x] = index
                 }
-                lookupTable[lookupIndex]
             }
+            val newPixels = BooleanArray(indices.size) { lookupTable[indices[it]] }
             return Image(
                 newWidth,
                 newHeight,
                 newPixels,
-                if (image.defaultPixel) lookupTable.last() else lookupTable.first()
+                lookupTable[defaultIndex]
             )
         }
     }
@@ -86,7 +93,7 @@ fun main() {
     benchmark("part1", 100) {
         part1(input)
     }
-    benchmark("part1", 100) {
+    benchmark("part2", 100) {
         part2(input)
     }
 
