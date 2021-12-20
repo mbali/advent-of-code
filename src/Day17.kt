@@ -1,13 +1,16 @@
-import kotlin.math.absoluteValue
-import kotlin.math.max
-import kotlin.math.min
 import kotlin.math.sign
 
 fun main() {
 
     data class Position(val x: Int, val y: Int)
     data class Speed(val vx: Int, val vy: Int)
-    data class Area(val xRange: IntRange, val yRange: IntRange)
+    data class Area(val xRange: IntRange, val yRange: IntRange) {
+        init {
+            if (xRange.first < 0) throw IllegalArgumentException("Target x postion should be in the positive range")
+            if (yRange.last > 0) throw IllegalArgumentException("Target y postion should be in the negative range")
+        }
+    }
+
     data class State(val speed: Speed, val position: Position = Position(0, 0))
 
     fun State.trajectory(): Sequence<State> = generateSequence(this) {
@@ -44,22 +47,8 @@ fun main() {
                 }
             }
         }
-        val vXRange = if (0 in xRange) {
-            xRange
-        } else {
-            val signX = xRange.first.sign
-            val absXRange = min(
-                xRange.first.absoluteValue,
-                xRange.last.absoluteValue
-            )..max(xRange.first.absoluteValue, xRange.last.absoluteValue)
-            val minAbsVx = (1..absXRange.last).first { it * (it + 1) / 2 >= absXRange.first }
-            if (signX >= 0) minAbsVx..absXRange.last
-            else -minAbsVx..-absXRange.first
-        }
-        val vYRange = min(
-            yRange.first,
-            0
-        )..if (yRange.first < 0) yRange.first.absoluteValue else 500 //if we shoot upward then wer will reach y=0 with vy=-vy0, so the next step should not overstep
+        val vXRange = 0..xRange.last
+        val vYRange = yRange.first..-yRange.first
         return vXRange.flatMap { vx ->
             vYRange.mapNotNull { vy ->
                 val trajectory = State(Speed(vx, vy)).trajectory()
