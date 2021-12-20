@@ -28,11 +28,12 @@ private object Day20 {
             val newPixels = BooleanArray(newWidth * newHeight) { idx ->
                 val x = idx % newWidth - 2
                 val y = idx / newHeight - 2
-                val lookupIndex = (-1..1).flatMap { dy ->
-                    (-1..1).map { dx ->
-                        if (image.at(x + dx, y + dy)) "1" else "0"
+                var lookupIndex = 0
+                (-1..1).forEach { dy ->
+                    (-1..1).forEach { dx ->
+                        lookupIndex = lookupIndex * 2 + if (image.at(x + dx, y + dy)) 1 else 0
                     }
-                }.joinToString("").toInt(2)
+                }
                 lookupTable[lookupIndex]
             }
             return Image(
