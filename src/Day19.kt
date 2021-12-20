@@ -1,6 +1,5 @@
 import Day19.locateScanners
 import Day19.parseScanResults
-import Day19.transform
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.runBlocking
 
@@ -10,11 +9,9 @@ private object Day19 {
         Vec3.UNITS.filter { it dot x == 0 }.map { y -> Mat3(x, y, x cross y) }
     }
 
-    data class ScanResult(val scannerId: Int, val beaconLocations: List<Vec3>)
+    data class ScanResult(val scannerId: Int, val beaconLocations: Map<Mat3, List<Vec3>>)
 
     data class ScannerPosition(val orientation: Mat3, val location: Vec3)
-
-    infix fun ScannerPosition.transform(v: Vec3) = orientation * v + location
 
     data class Vertex(val from: ScanResult, val to: ScanResult, val relativePosition: ScannerPosition)
 
@@ -41,15 +38,19 @@ private object Day19 {
                     SCANNER_REGEX.matchEntire(it)
                         ?.let { matchResult ->
                             val scannerId = matchResult.groups["id"]!!.value.toInt()
+                            val scannedPositions = buildList {
+                                do {
+                                    val positions = nextLine()
+                                    if (positions == null || positions.isEmpty()) continue
+                                    val (x, y, z) = positions.split(',').map { pos -> pos.toInt() }
+                                    add(Vec3(x, y, z))
+                                } while (positions != null && positions.isNotEmpty())
+                            }
                             add(
-                                ScanResult(scannerId,
-                                    buildList {
-                                        do {
-                                            val positions = nextLine()
-                                            if (positions == null || positions.isEmpty()) continue
-                                            val (x, y, z) = positions.split(',').map { pos -> pos.toInt() }
-                                            add(Vec3(x, y, z))
-                                        } while (positions != null && positions.isNotEmpty())
+                                ScanResult(
+                                    scannerId,
+                                    ORIENTATIONS.associateWith { o ->
+                                        scannedPositions.map { p -> o * p }
                                     }
                                 )
                             )
@@ -61,21 +62,23 @@ private object Day19 {
     }
 
     private fun getOffsetOrNull(knownPositions: Set<Vec3>, candidatePositions: List<Vec3>): Vec3? {
-        candidatePositions.forEach { candidate ->
+        val candidateCount = candidatePositions.size
+        val maxCandidateIndex = candidateCount - 12
+        candidatePositions.forEachIndexed { candidateIdx, candidate ->
+            if (candidateIdx > maxCandidateIndex) return null
+            val candidatesToCheck = candidatePositions.subList(candidateIdx, candidateCount)
             knownPositions.forEach { known ->
                 val offset = known - candidate
-                if (candidatePositions.count { it + offset in knownPositions } >= 12) {
-                    return offset
-                }
+                if (candidatesToCheck.count { it + offset in knownPositions } >= 12) return offset
             }
         }
         return null
     }
 
     fun ScanResult.relativePositionTo(other: ScanResult): ScannerPosition? {
-        val knownPositions = other.beaconLocations.toSet()
+        val knownPositions = other.beaconLocations.getValue(Mat3.IDENTITY).toSet()
         val result = ORIENTATIONS.firstNotNullOfOrNull { o ->
-            val orientedPositions = this.beaconLocations.map { o * it }
+            val orientedPositions = this.beaconLocations.getValue(o)
             getOffsetOrNull(knownPositions, orientedPositions)?.let {
                 ScannerPosition(o, it)
             }
@@ -128,7 +131,7 @@ fun main() {
     fun part1(input: List<String>): Int {
         return input.parseScanResults().locateScanners()
             .flatMap { (scan, position) ->
-                scan.beaconLocations.map { position transform it }
+                scan.beaconLocations.getValue(position.orientation).map { position.location + it }
             }.toSet().size
     }
 
