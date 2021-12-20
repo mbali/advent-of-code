@@ -81,4 +81,12 @@ fun main() {
 
     check(part2(testInput) == 3351)
     println(part2(input))
+
+    benchmark("part1", 20) {
+        part1(input)
+    }
+    benchmark("part1", 20) {
+        part2(input)
+    }
+
 }
