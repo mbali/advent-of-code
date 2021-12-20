@@ -57,16 +57,20 @@ private object Day20 {
 
 fun main() {
 
-    fun part1(input: List<String>): Int {
+    fun solution(input: List<String>, enhancements: Int): Int {
         val algorithm = input.first().toAlgorithm()
         val image = input.drop(2).toImage()
-        val resultingImage = generateSequence(image) { i -> algorithm.apply(i) }.drop(1).take(2).last()
+        val resultingImage = generateSequence(image) { i -> algorithm.apply(i) }.take(enhancements + 1).last()
         if (resultingImage.defaultPixel) throw IllegalStateException("There are infinite light pixels in the resulting image")
         return resultingImage.knownPixels.count { it }
     }
 
+    fun part1(input: List<String>): Int {
+        return solution(input, 2)
+    }
+
     fun part2(input: List<String>): Int {
-        TODO()
+        return solution(input, 50)
     }
 
     val testInput = readInput("Day20_test")
@@ -75,6 +79,6 @@ fun main() {
     val input = readInput("Day20")
     println(part1(input))
 
-    check(part2(testInput) == TODO())
+    check(part2(testInput) == 3351)
     println(part2(input))
 }
