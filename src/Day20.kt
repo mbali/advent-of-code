@@ -23,11 +23,11 @@ private object Day20 {
         }
 
         fun apply(image: Image): Image {
-            val newWidth = image.knownWidth + 4
-            val newHeight = image.knownHeight + 4
+            val newWidth = image.knownWidth + 2
+            val newHeight = image.knownHeight + 2
             val newPixels = BooleanArray(newWidth * newHeight) { idx ->
-                val x = idx % newWidth - 2
-                val y = idx / newHeight - 2
+                val x = idx % newWidth - 1
+                val y = idx / newHeight - 1
                 var lookupIndex = 0
                 (-1..1).forEach { dy ->
                     (-1..1).forEach { dx ->
