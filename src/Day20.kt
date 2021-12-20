@@ -29,8 +29,8 @@ private object Day20 {
                 val x = idx % newWidth - 1
                 val y = idx / newHeight - 1
                 var lookupIndex = 0
-                (-1..1).forEach { dy ->
-                    (-1..1).forEach { dx ->
+                for (dy in -1..1) {
+                    for (dx in -1..1) {
                         lookupIndex = lookupIndex * 2 + if (image.at(x + dx, y + dy)) 1 else 0
                     }
                 }
@@ -83,10 +83,10 @@ fun main() {
     check(part2(testInput) == 3351)
     println(part2(input))
 
-    benchmark("part1", 20) {
+    benchmark("part1", 100) {
         part1(input)
     }
-    benchmark("part1", 20) {
+    benchmark("part1", 100) {
         part2(input)
     }
 
