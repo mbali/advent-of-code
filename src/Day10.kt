@@ -13,13 +13,15 @@ fun main() {
 
         init {
             var errorPosition: Int? = null
-            input.toCharArray().forEachIndexed { idx, char ->
-                if (char in closingPairs.keys) {
-                    expectedClosers.addFirst(closingPairs.getValue(char))
-                } else {
-                    if (expectedClosers.removeFirstOrNull() != char) {
-                        errorPosition = idx
-                        return@forEachIndexed
+            run {
+                input.toCharArray().forEachIndexed { idx, char ->
+                    if (char in closingPairs.keys) {
+                        expectedClosers.addFirst(closingPairs.getValue(char))
+                    } else {
+                        if (expectedClosers.removeFirstOrNull() != char) {
+                            errorPosition = errorPosition ?: idx
+                            return@run
+                        }
                     }
                 }
             }
