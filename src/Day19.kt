@@ -151,7 +151,9 @@ fun main() {
     check(part2(testInput) == 3621)
     println(part2(input))
 
-    benchmark("positioning scanners", 10) {
-        input.parseScanResults().locateScanners()
+    for (round in 1..3) {
+        println("------------ Round $round!--------")
+        benchmark("positioning scanners", 30) { input.parseScanResults().locateScanners() }
     }
+
 }
