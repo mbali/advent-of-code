@@ -2,19 +2,38 @@ import kotlin.math.absoluteValue
 
 fun main() {
 
-    fun solution(positions: List<Int>, costCalculation: (distance: Int) -> Int): Int {
+    fun solution(positions: List<Int>, initialGuess: Int, costCalculation: (distance: Int) -> Int): Int {
         val targets = positions.minOf { it }..positions.maxOf { it }
-        return targets.map { target -> positions.sumOf { costCalculation((it - target).absoluteValue) } }.minOf { it }
+        var minimumCost = positions.sumOf { costCalculation((initialGuess - it).absoluteValue) }
+        var guess = initialGuess
+        while (guess in targets) {
+            //check to the left
+            val leftCost = positions.sumOf { costCalculation((guess - 1 - it).absoluteValue) }
+            if (leftCost < minimumCost) {
+                guess--
+                minimumCost = leftCost
+                continue
+            }
+            val rightCost = positions.sumOf { costCalculation((guess + 1 - it).absoluteValue) }
+            if (rightCost < minimumCost) {
+                guess++
+                minimumCost = rightCost
+                continue
+            }
+            break //local minimum is global minimum
+        }
+        positions.first()
+        return minimumCost
     }
 
     fun part1(input: List<String>): Int {
         val positions = input.first().split(',').map { it.toInt() }
-        return solution(positions) { it }
+        return solution(positions, positions.sorted().middle()) { it }
     }
 
     fun part2(input: List<String>): Int {
         val positions = input.first().split(',').map { it.toInt() }
-        return solution(positions) { it * (it + 1) / 2 }
+        return solution(positions, positions.average().toInt()) { it * (it + 1) / 2 }
     }
 
     val testInput = readInput("Day07_test")

@@ -22,6 +22,16 @@ fun String.md5(): String = BigInteger(1, MessageDigest.getInstance("MD5").digest
 
 inline fun SHOULD_NOT_REACH(): Nothing = throw IllegalStateException("Should not reach")
 
+fun <E> List<E>.middle(): E {
+    return if (isEmpty()) throw NoSuchElementException("List is empty")
+    else this[size / 2]
+}
+
+fun <E> List<E>.exactMiddle(): E {
+    return if (size % 2 == 0) throw NoSuchElementException("List does not have odd number of elements")
+    else this[size / 2]
+}
+
 @OptIn(ExperimentalTime::class)
 fun benchmark(name: String, times: Int = 1, action: () -> Unit) {
     val measuredNanos = (1..times).map { measureTime(action).inWholeNanoseconds }
