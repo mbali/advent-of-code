@@ -51,3 +51,18 @@ private fun List<Long>.meanAndStd(): Pair<Double, Double> {
 suspend fun <A, B> Iterable<A>.pmap(f: suspend (A) -> B): List<B> = coroutineScope {
     map { async { f(it) } }.awaitAll()
 }
+
+fun <A, B> crossJoin(a: Iterable<A>, b: Iterable<B>): Sequence<Pair<A, B>> {
+    val aSeq = a.asSequence()
+    val bSeq = b.asSequence()
+    return aSeq.flatMap { aValue ->
+        bSeq.map { aValue to it }
+    }
+}
+
+fun <A, B, C> crossJoin(a: Iterable<A>, b: Iterable<B>, c: Iterable<C>): Sequence<Triple<A, B, C>> {
+    val cSeq = c.asSequence()
+    return crossJoin(a, b).flatMap { (aValue, bValue) ->
+        cSeq.map { Triple(aValue, bValue, it) }
+    }
+}
