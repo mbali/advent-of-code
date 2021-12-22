@@ -25,7 +25,8 @@ private object Day22 {
 
     private infix fun IntRange.mergeableWith(other: IntRange): Boolean =
         !intersect(other).isEmpty() ||
-                (last != Int.MAX_VALUE && other.last != Int.MAX_VALUE && (first == other.last + 1 || other.first == last + 1))
+                first.toLong() == other.last.toLong() + 1 || //we must use long, because last can be Int.MAX_VALUE
+                other.first.toLong() == last.toLong() + 1
 
     private infix fun IntRange.merge(other: IntRange): IntRange =
         if (!this.mergeableWith(other)) {
