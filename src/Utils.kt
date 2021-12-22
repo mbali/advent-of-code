@@ -20,6 +20,8 @@ fun readInput(name: String) = File("src", "$name.txt").readLines()
  */
 fun String.md5(): String = BigInteger(1, MessageDigest.getInstance("MD5").digest(toByteArray())).toString(16)
 
+fun String.ints(): List<Int> = Regex("""-?\d+""").findAll(this).map { it.value.toInt() }.toList()
+
 inline fun SHOULD_NOT_REACH(): Nothing = throw IllegalStateException("Should not reach")
 
 fun <E> List<E>.middle(): E {
