@@ -26,12 +26,8 @@ object Day21 {
             GameState(otherPlayerPosition, newPosition, winningScore, otherPlayerScore, newScore)
         }
 
-    val POSSIBLE_DIRAC_ROLL_COUNTS = (1..3)
-        .flatMap { r1 ->
-            (1..3).flatMap { r2 ->
-                (1..3).map { r3 -> r1 + r2 + r3 }
-            }
-        }.groupingBy { it }.eachCount().toList()
+    val POSSIBLE_DIRAC_ROLL_COUNTS = crossJoin(1..3, 1..3, 1..3)
+        .map { (r1, r2, r3) -> r1 + r2 + r3 }.groupingBy { it }.eachCount().toList()
 
     fun List<String>.toInitialState(winningScore: Int): GameState {
         val (p1, p2) = this.map { line -> Regex("""\d+$""").find(line)!!.value.toInt() }

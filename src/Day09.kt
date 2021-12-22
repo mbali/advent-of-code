@@ -19,7 +19,7 @@ fun main() {
 
     fun part1(input: List<String>): Int {
         val heightMap = input.asHeightMap()
-        val lowPointPositions = buildList<Pair<Int, Int>> {
+        val lowPointPositions = buildList {
             heightMap
                 .indices.forEach { row ->
                     heightMap[row].indices.forEach { col ->

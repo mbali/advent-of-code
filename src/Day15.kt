@@ -38,18 +38,15 @@ fun main() {
             ((costs[y % scannedY][x % scannedX] - 1) + x / scannedX + y / scannedY) % 9 + 1
 
         return buildMap<Pair<Int, Int>, Node> {
-            for (x in 0..maxX) {
-                for (y in 0..maxY) {
-                    put(x to y, Node(x, y, costAt(x, y)))
-                }
+            val positions = crossJoin(0..maxX, 0..maxY)
+            positions.forEach { (x, y) ->
+                put(x to y, Node(x, y, costAt(x, y)))
             }
-            for (x in 0..maxX) {
-                for (y in 0..maxY) {
-                    listOf(-1 to 0, 1 to 0, 0 to -1, 0 to 1)
-                        .map { x + it.first to y + it.second }
-                        .filter { it.first in 0..maxX && it.second in 0..maxY }
-                        .forEach { getValue(x to y).neighbours.add(getValue(it)) }
-                }
+            positions.forEach { (x, y) ->
+                listOf(-1 to 0, 1 to 0, 0 to -1, 0 to 1)
+                    .map { x + it.first to y + it.second }
+                    .filter { it.first in 0..maxX && it.second in 0..maxY }
+                    .forEach { getValue(x to y).neighbours.add(getValue(it)) }
             }
         }.values.toList()
     }

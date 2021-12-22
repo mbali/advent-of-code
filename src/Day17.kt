@@ -49,15 +49,13 @@ fun main() {
         }
         val vXRange = 0..xRange.last
         val vYRange = yRange.first..-yRange.first
-        return vXRange.flatMap { vx ->
-            vYRange.mapNotNull { vy ->
-                val trajectory = State(Speed(vx, vy)).trajectory()
-                if (trajectory.takeWhile { it.speed.vy >= 0 || it.position.y >= yRange.first }
-                        .any { this.contains(it.position) })
-                    trajectory.takeWhile { !this.contains(it.position) }
-                else null
-            }
-        }
+        return crossJoin(vXRange, vYRange).mapNotNull { (vx, vy) ->
+            val trajectory = State(Speed(vx, vy)).trajectory()
+            if (trajectory.takeWhile { it.speed.vy >= 0 || it.position.y >= yRange.first }
+                    .any { this.contains(it.position) })
+                trajectory.takeWhile { !this.contains(it.position) }
+            else null
+        }.toList()
     }
 
 
