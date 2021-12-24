@@ -1,3 +1,4 @@
+import Day24.countModelNumbers
 import Day24.solution
 import Day24.toInstructions
 
@@ -58,7 +59,7 @@ object Day24 {
     }
 
     fun findModelNumber(program: List<Instruction>, inputProgression: IntProgression): List<Int>? {
-        val cycleParams = buildList<CycleParam> {
+        val cycleParams = buildList {
             program
                 .chunked(18)
                 .also { it.size == 14 || throw IllegalStateException("Not 14 cycles found") }
@@ -85,6 +86,34 @@ object Day24 {
         return helper()?.reversed()
     }
 
+    fun countModelNumbers(program: List<Instruction>): Long {
+        val cycleParams = buildList {
+            program
+                .chunked(18)
+                .also { it.size == 14 || throw IllegalStateException("Not 14 cycles found") }
+                .forEach { cycle ->
+                    add(cycle.cycleParam())
+                }
+        }
+        val postfixCount = mutableMapOf<Pair<Int, Long>, Long>()
+
+        fun helper(depth: Int = 0, z: Long = 0): Long {
+            return postfixCount.getOrPut(depth to z) {
+                var count = 0L
+                for (input in 1..9) {
+                    val newZ = z.cycle(input.toLong(), cycleParams[depth])
+                    if (newZ == 0L && depth == cycleParams.lastIndex) {
+                        count++
+                    } else if (depth < cycleParams.lastIndex) {
+                        count += helper(depth + 1, newZ)
+                    }
+                }
+                count
+            }
+        }
+        return helper()
+    }
+
 
     fun solution(program: List<Instruction>, inputProgression: IntProgression): String? {
         return findModelNumber(program, inputProgression)?.joinToString("")
@@ -104,4 +133,13 @@ fun main() {
     val input = readInput("Day24")
     println(part1(input))
     println(part2(input))
+    println("Count of valid model numbers: ${countModelNumbers(input.toInstructions())}")
+
+    for (round in 1..3) {
+        println("------------ Round $round!-------- FIGHT!")
+        benchmark("part1", 3) { part1(input) }
+        benchmark("part2", 3) { part2(input) }
+        benchmark("count model numbers", 1) { countModelNumbers(input.toInstructions()) }
+    }
+
 }
