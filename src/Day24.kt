@@ -57,7 +57,7 @@ object Day24 {
         return CycleParam(addX.opValue, addY.opValue, divZ.opValue)
     }
 
-    fun findModelNumber(program: List<Instruction>): List<Long>? {
+    fun findModelNumber(program: List<Instruction>, inputProgression: IntProgression): List<Int>? {
         val cycleParams = buildList<CycleParam> {
             program
                 .chunked(18)
@@ -68,11 +68,11 @@ object Day24 {
         }
         val exchaustedStates = mutableSetOf<Pair<Int, Long>>() //index to z at beginning
 
-        fun helper(depth: Int = 0, z: Long = 0): List<Long>? {
+        fun helper(depth: Int = 0, z: Long = 0): List<Int>? {
             val key = depth to z
             if (key in exchaustedStates) return null
-            for (input in 9L downTo 1L) {
-                val newZ = z.cycle(input, cycleParams[depth])
+            for (input in inputProgression) {
+                val newZ = z.cycle(input.toLong(), cycleParams[depth])
                 if (newZ == 0L && depth == cycleParams.lastIndex)
                     return listOf(input)
                 else if (depth < cycleParams.lastIndex) {
@@ -86,19 +86,19 @@ object Day24 {
     }
 
 
-    fun solution(program: List<Instruction>): String? {
-        return findModelNumber(program)?.joinToString("")
+    fun solution(program: List<Instruction>, inputProgression: IntProgression): String? {
+        return findModelNumber(program, inputProgression)?.joinToString("")
     }
 }
 
 fun main() {
 
     fun part1(input: List<String>): String {
-        return solution(input.toInstructions())!!
+        return solution(input.toInstructions(), 9 downTo 1)!!
     }
 
-    fun part2(input: List<String>): Int {
-        TODO()
+    fun part2(input: List<String>): String {
+        return solution(input.toInstructions(), 1..9)!!
     }
 
     val input = readInput("Day24")
