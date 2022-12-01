@@ -1,9 +1,13 @@
-import Day24.countModelNumbers
-import Day24.countValidModelNumbers
-import Day24.findModelNumber
-import Day24.solution
-import Day24.toInstructions
-import Day24.toProgram
+package year2021
+
+import benchmark
+import readInput
+import year2021.Day24.countModelNumbers
+import year2021.Day24.countValidModelNumbers
+import year2021.Day24.findModelNumber
+import year2021.Day24.solution
+import year2021.Day24.toInstructions
+import year2021.Day24.toProgram
 
 object Day24 {
     sealed class Instruction(val target: String) {
@@ -249,7 +253,7 @@ fun main() {
         return solution(input.toInstructions(), 1..9)!!
     }
 
-    val input = readInput("Day24")
+    val input = readInput(2021, "Day24")
     println(part1(input))
     println(part2(input))
     println("Count of valid model numbers: ${countModelNumbers(input.toInstructions())}")

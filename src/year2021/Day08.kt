@@ -1,3 +1,8 @@
+package year2021
+
+import benchmark
+import readInput
+
 private data class PuzzleEntry(val patterns: List<String>, val output: List<String>)
 
 private fun String.toBits() =
@@ -86,10 +91,10 @@ fun main() {
             .map { it to Decoder(it.patterns) }
             .sumOf { (entry, decoder) -> decoder.decode(entry.output) }
 
-    val testInput = readInput("Day08_test")
+    val testInput = readInput(2021, "Day08_test")
     check(part1(testInput) == 26)
 
-    val input = readInput("Day08")
+    val input = readInput(2021, "Day08")
     println(part1(input))
 
     check(part2(testInput) == 61229)

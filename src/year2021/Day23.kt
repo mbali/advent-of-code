@@ -1,4 +1,9 @@
-import Day23.solution
+package year2021
+
+import SHOULD_NOT_REACH
+import benchmark
+import readInput
+import year2021.Day23.solution
 import kotlin.math.absoluteValue
 
 object Day23 {
@@ -219,10 +224,10 @@ fun main() {
         return solution(input)
     }
 
-    val testInput = readInput("Day23_test")
+    val testInput = readInput(2021, "Day23_test")
 
     check(part1(testInput) == 12521)
-    val input = readInput("Day23")
+    val input = readInput(2021, "Day23")
     println(part1(input))
 
     check(part2(testInput) == 44169)

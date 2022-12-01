@@ -1,3 +1,7 @@
+package year2021
+
+import benchmark
+import readInput
 import kotlin.math.abs
 import kotlin.math.max
 import kotlin.math.sign
@@ -33,7 +37,7 @@ private class Line(val start: Position, val end: Position) {
     }
 }
 
-private fun List<String>.solution(ordinalDirectionsOnly: Boolean): Int = map(Line::from)
+private fun List<String>.solution(ordinalDirectionsOnly: Boolean): Int = map(Line.Companion::from)
     .flatMap { it.positions(ordinalDirectionsOnly) }
     .groupingBy { it }
     .eachCount()
@@ -49,10 +53,10 @@ fun main() {
         return input.solution(false)
     }
 
-    val testInput = readInput("Day05_test")
+    val testInput = readInput(2021, "Day05_test")
     check(part1(testInput) == 5)
 
-    val input = readInput("Day05")
+    val input = readInput(2021, "Day05")
     println(part1(input))
 
     check(part2(testInput) == 12)

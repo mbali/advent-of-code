@@ -1,6 +1,11 @@
-import SnailfishToken.*
+package year2021
+
+import benchmark
+import year2021.SnailfishToken.*
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.runBlocking
+import pmap
+import readInput
 
 private sealed class SnailfishToken() {
     data class RegularNumber(val value: Int) : SnailfishToken()
@@ -141,10 +146,10 @@ fun main() {
         }
     }
 
-    val testInput = readInput("Day18_test")
+    val testInput = readInput(2021, "Day18_test")
     check(part1(testInput) == 4140)
 
-    val input = readInput("Day18")
+    val input = readInput(2021, "Day18")
     println(part1(input))
 
     check(part2(testInput) == 3993)

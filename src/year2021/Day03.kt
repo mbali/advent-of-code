@@ -1,3 +1,8 @@
+package year2021
+
+import benchmark
+import readInput
+
 fun main() {
 
     fun toMeasurements(input: List<String>) = input
@@ -60,11 +65,11 @@ fun main() {
         return o2GeneratorRating * co2ScrubberRating
     }
 
-    val testInput = readInput("Day03_test")
+    val testInput = readInput(2021, "Day03_test")
     check(part1(testInput) == 198)
     check(part2(testInput) == 230)
 
-    val input = readInput("Day03")
+    val input = readInput(2021, "Day03")
     println(part1(input))
     println(part2(input))
 

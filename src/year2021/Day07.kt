@@ -1,3 +1,8 @@
+package year2021
+
+import benchmark
+import middle
+import readInput
 import kotlin.math.absoluteValue
 
 fun main() {
@@ -36,10 +41,10 @@ fun main() {
         return solution(positions, positions.average().toInt()) { it * (it + 1) / 2 }
     }
 
-    val testInput = readInput("Day07_test")
+    val testInput = readInput(2021, "Day07_test")
     check(part1(testInput) == 37)
 
-    val input = readInput("Day07")
+    val input = readInput(2021, "Day07")
     println(part1(input))
 
     check(part2(testInput) == 168)

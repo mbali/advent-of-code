@@ -1,3 +1,8 @@
+package year2021
+
+import benchmark
+import readInput
+
 fun main() {
     class FoldInstruction(val x: Int? = null, val y: Int? = null) {
         fun transform(positions: Set<Pair<Int, Int>>): Set<Pair<Int, Int>> =
@@ -74,10 +79,10 @@ fun main() {
         return result.count()
     }
 
-    val testInput = readInput("Day13_test")
+    val testInput = readInput(2021, "Day13_test")
     check(part1(testInput) == 17)
 
-    val input = readInput("Day13")
+    val input = readInput(2021, "Day13")
     println(part1(input))
 
     check(part2("TEST", testInput) == 16)

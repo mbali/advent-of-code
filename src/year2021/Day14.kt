@@ -1,3 +1,8 @@
+package year2021
+
+import benchmark
+import readInput
+
 fun main() {
 
     class Polymer(val start: Char, val end: Char, val pairCounts: Map<String, Long>) {
@@ -59,10 +64,10 @@ fun main() {
         return solution(input, 40)
     }
 
-    val testInput = readInput("Day14_test")
+    val testInput = readInput(2021, "Day14_test")
     check(part1(testInput) == 1588L)
 
-    val input = readInput("Day14")
+    val input = readInput(2021, "Day14")
     println(part1(input))
     check(part2(testInput) == 2188189693529L)
     println(part2(input))

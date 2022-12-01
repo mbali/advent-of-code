@@ -1,3 +1,8 @@
+package year2021
+
+import benchmark
+import readInput
+
 fun main() {
 
     fun step(energyLevels: IntArray): IntArray {
@@ -51,10 +56,10 @@ fun main() {
             .count() //with the initial state, the count is the expected value
     }
 
-    val testInput = readInput("Day11_test")
+    val testInput = readInput(2021, "Day11_test")
     check(part1(testInput) == 1656)
 
-    val input = readInput("Day11")
+    val input = readInput(2021, "Day11")
     println(part1(input))
 
     check(part2(testInput) == 195)

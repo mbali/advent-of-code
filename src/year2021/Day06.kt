@@ -1,3 +1,8 @@
+package year2021
+
+import benchmark
+import readInput
+
 fun main() {
     fun tick(input: LongArray): LongArray {
         check(input.size == 9) { "Input size should be 9" }
@@ -27,10 +32,10 @@ fun main() {
         return solution(input, 256)
     }
 
-    val testInput = readInput("Day06_test")
+    val testInput = readInput(2021, "Day06_test")
     check(part1(testInput) == 5_934L)
 
-    val input = readInput("Day06")
+    val input = readInput(2021, "Day06")
     println(part1(input))
 
     check(part2(testInput) == 26_984_457_539L)

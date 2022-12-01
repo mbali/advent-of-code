@@ -1,3 +1,8 @@
+package year2021
+
+import benchmark
+import readInput
+
 fun main() {
 
     fun isSmall(id: String) = id.all { it.isLowerCase() }
@@ -47,14 +52,14 @@ fun main() {
         }.size
     }
 
-    val testInput1 = readInput("Day12_test1")
-    val testInput2 = readInput("Day12_test2")
-    val testInput3 = readInput("Day12_test3")
+    val testInput1 = readInput(2021, "Day12_test1")
+    val testInput2 = readInput(2021, "Day12_test2")
+    val testInput3 = readInput(2021, "Day12_test3")
     check(part1(testInput1) == 10)
     check(part1(testInput2) == 19)
     check(part1(testInput3) == 226)
 
-    val input = readInput("Day12")
+    val input = readInput(2021, "Day12")
     println(part1(input))
 
     check(part2(testInput1) == 36)

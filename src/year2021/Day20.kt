@@ -1,5 +1,9 @@
-import Day20.toAlgorithm
-import Day20.toImage
+package year2021
+
+import benchmark
+import readInput
+import year2021.Day20.toAlgorithm
+import year2021.Day20.toImage
 
 private object Day20 {
     class Image(
@@ -81,10 +85,10 @@ fun main() {
         return solution(input, 50)
     }
 
-    val testInput = readInput("Day20_test")
+    val testInput = readInput(2021, "Day20_test")
     check(part1(testInput) == 35)
 
-    val input = readInput("Day20")
+    val input = readInput(2021, "Day20")
     println(part1(input))
 
     check(part2(testInput) == 3351)

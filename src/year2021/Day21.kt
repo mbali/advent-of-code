@@ -1,7 +1,12 @@
-import Day21.GameState
-import Day21.POSSIBLE_DIRAC_ROLL_COUNTS
-import Day21.next
-import Day21.toInitialState
+package year2021
+
+import benchmark
+import crossJoin
+import readInput
+import year2021.Day21.GameState
+import year2021.Day21.POSSIBLE_DIRAC_ROLL_COUNTS
+import year2021.Day21.next
+import year2021.Day21.toInitialState
 import kotlin.math.max
 import kotlin.math.min
 
@@ -74,10 +79,10 @@ fun main() {
         return input.toInitialState(21).helper().let { max(it.first, it.second) }
     }
 
-    val testInput = readInput("Day21_test")
+    val testInput = readInput(2021, "Day21_test")
     check(part1(testInput) == 739785)
 
-    val input = readInput("Day21")
+    val input = readInput(2021, "Day21")
     println(part1(input))
 
     check(part2(testInput) == 444356092776315)

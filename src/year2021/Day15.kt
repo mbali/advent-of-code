@@ -1,3 +1,9 @@
+package year2021
+
+import SHOULD_NOT_REACH
+import benchmark
+import crossJoin
+import readInput
 import java.util.*
 
 fun main() {
@@ -66,10 +72,10 @@ fun main() {
         return solution(input, 5)
     }
 
-    val testInput = readInput("Day15_test")
+    val testInput = readInput(2021, "Day15_test")
     check(part1(testInput) == 40)
 
-    val input = readInput("Day15")
+    val input = readInput(2021, "Day15")
     println(part1(input))
 
     check(part2(testInput) == 315)

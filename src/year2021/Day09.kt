@@ -1,3 +1,8 @@
+package year2021
+
+import benchmark
+import readInput
+
 private typealias HeightMap = Array<Array<Int>>
 
 
@@ -67,10 +72,10 @@ fun main() {
             .take(3).reduce { a, b -> a * b }
     }
 
-    val testInput = readInput("Day09_test")
+    val testInput = readInput(2021, "Day09_test")
     check(part1(testInput) == 15)
 
-    val input = readInput("Day09")
+    val input = readInput(2021, "Day09")
     println(part1(input))
 
     check(part2(testInput) == 1134)

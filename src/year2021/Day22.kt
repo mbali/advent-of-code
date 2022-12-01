@@ -1,5 +1,12 @@
-import Day22.Region
-import Day22.solution
+package year2021
+
+import Vec3
+import benchmark
+import crossJoin
+import ints
+import readInput
+import year2021.Day22.Region
+import year2021.Day22.solution
 import kotlin.math.max
 import kotlin.math.min
 
@@ -155,12 +162,12 @@ fun main() {
         return solution(input, quiet = quiet)
     }
 
-    val testInput = readInput("Day22_test")
-    val testInput2 = readInput("Day22_test2")
+    val testInput = readInput(2021, "Day22_test")
+    val testInput2 = readInput(2021, "Day22_test2")
     check(part1(testInput) == 590784L)
     check(part1(testInput2) == 474140L)
 
-    val input = readInput("Day22")
+    val input = readInput(2021, "Day22")
     println(part1(input, quiet))
 
     check(part2(testInput2) == 2758514936282235L)

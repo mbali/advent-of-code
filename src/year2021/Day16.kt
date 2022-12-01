@@ -1,3 +1,8 @@
+package year2021
+
+import benchmark
+import readInput
+
 sealed class BitPacket(val version: Int) {
     abstract fun value(): Long
     open fun part1Score() = version.toLong()
@@ -141,7 +146,7 @@ fun main() {
     check(part1("C0015000016115A2E0802F182340") == 23L)
     check(part1("A0016C880162017C3686B18A3D4780") == 31L)
 
-    val input = readInput("Day16").first()
+    val input = readInput(2021, "Day16").first()
     println(part1(input))
 
     check(part2("C200B40A82") == 3L)

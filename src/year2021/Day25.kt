@@ -1,5 +1,9 @@
-import Day25.step
-import Day25.toSeafloor
+package year2021
+
+import benchmark
+import readInput
+import year2021.Day25.step
+import year2021.Day25.toSeafloor
 
 object Day25 {
     data class SeaFloor(
@@ -47,10 +51,10 @@ fun main() {
         return generateSequence(input.toSeafloor()) { it.step() }.count()
     }
 
-    val testInput = readInput("Day25_test")
+    val testInput = readInput(2021, "Day25_test")
     check(part1(testInput) == 58)
 
-    val input = readInput("Day25")
+    val input = readInput(2021, "Day25")
     println(part1(input))
 
     for (round in 1..3) {

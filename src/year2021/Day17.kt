@@ -1,3 +1,8 @@
+package year2021
+
+import benchmark
+import crossJoin
+import readInput
 import kotlin.math.sign
 
 fun main() {
@@ -67,10 +72,10 @@ fun main() {
         return target.hittingTrajectories().size
     }
 
-    val testInput = readInput("Day17_test").first().toArea()
+    val testInput = readInput(2021, "Day17_test").first().toArea()
     check(part1(testInput) == 45)
 
-    val input = readInput("Day17").first().toArea()
+    val input = readInput(2021, "Day17").first().toArea()
     println(part1(input))
 
     check(part2(testInput) == 112)

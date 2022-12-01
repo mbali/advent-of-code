@@ -1,3 +1,7 @@
+package year2021
+
+import benchmark
+import readInput
 import java.util.concurrent.atomic.AtomicInteger
 
 sealed class SnailFishNumber() {
@@ -35,7 +39,7 @@ sealed class SnailFishNumber() {
     }
 
     /**
-     * Explode a given NumberPair node, and return the new SnailFishNumber after the explosion
+     * Explode a given NumberPair node, and return the new year2021.SnailFishNumber after the explosion
      *
      * @param left The regular number node to the left (if any)
      * @param toExplode The pair node to explode
@@ -222,10 +226,10 @@ fun main() {
         ) { "The magnitude of \"$num\" should be $magnitude" }
     }
 
-    val testInput = readInput("Day18_test")
+    val testInput = readInput(2021, "Day18_test")
     check(part1(testInput) == 4140L)
 
-    val input = readInput("Day18")
+    val input = readInput(2021, "Day18")
     println(part1(input))
 
     check(part2(testInput) == 3993L)

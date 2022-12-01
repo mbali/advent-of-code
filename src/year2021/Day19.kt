@@ -1,7 +1,21 @@
-import Day19.locateScanners
-import Day19.parseScanResults
+package year2021
+
+import Mat3
+import Vec3
+import benchmark
+import cross
+import dot
+import inverse
+import year2021.Day19.locateScanners
+import year2021.Day19.parseScanResults
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.runBlocking
+import manhattanDistance
+import minus
+import plus
+import pmap
+import readInput
+import times
 
 private object Day19 {
     private val SCANNER_REGEX = Regex("""--- scanner (?<id>\d+) ---""")
@@ -142,8 +156,8 @@ fun main() {
         }
     }
 
-    val testInput = readInput("Day19_test")
-    val input = readInput("Day19")
+    val testInput = readInput(2021, "Day19_test")
+    val input = readInput(2021, "Day19")
 
     check(part1(testInput) == 79)
     println(part1(input))

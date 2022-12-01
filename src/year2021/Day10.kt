@@ -1,3 +1,8 @@
+package year2021
+
+import benchmark
+import readInput
+
 fun main() {
 
     class Parser constructor(val input: String) {
@@ -66,10 +71,10 @@ fun main() {
         return scores[scores.size / 2]
     }
 
-    val testInput = readInput("Day10_test")
+    val testInput = readInput(2021, "Day10_test")
     check(part1(testInput) == 26397)
 
-    val input = readInput("Day10")
+    val input = readInput(2021, "Day10")
     println(part1(input))
 
     check(part2(testInput) == 288957L)

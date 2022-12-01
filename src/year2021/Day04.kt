@@ -1,3 +1,9 @@
+package year2021
+
+import SHOULD_NOT_REACH
+import benchmark
+import readInput
+
 private class BingoBoard(val numbers: Array<Int>) {
     init {
         check(numbers.size == 25)
@@ -59,10 +65,10 @@ fun main() {
         SHOULD_NOT_REACH()
     }
 
-    val testInput = readInput("Day04_test")
+    val testInput = readInput(2021, "Day04_test")
     check(part1(testInput) == 4512)
 
-    val input = readInput("Day04")
+    val input = readInput(2021, "Day04")
     println(part1(input))
 
     check(part2(testInput) == 1924)
