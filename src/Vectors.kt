@@ -54,3 +54,14 @@ private operator fun Mat3.div(d: Int): Mat3 {
 }
 
 infix fun Vec3.manhattanDistance(v: Vec3) = (x - v.x).absoluteValue + (y - v.y).absoluteValue + (z - v.z).absoluteValue
+
+fun Vec3.neighbours(orthogonal: Boolean = false) = sequence {
+    for (dx in -1..1) {
+        for (dy in -1..1) {
+            for (dz in -1..1) {
+                if (dx == 0 && dy == 0 && dz == 0) continue
+                yield(Vec3(x + dx, y + dy, z + dz))
+            }
+        }
+    }
+}.filter { !orthogonal || manhattanDistance(it) == 1 }.toList()

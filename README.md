@@ -1,4 +1,4 @@
-# advent-of-code-2021
+# Advent of Code in Kotlin
 
 Welcome to the Advent of Code[^aoc] Kotlin project created by [mbali][github] using the [Advent of Code Kotlin Template][template] delivered by JetBrains.
 

@@ -24,6 +24,26 @@ fun String.ints(): List<Int> = Regex("""-?\d+""").findAll(this).map { it.value.t
 
 inline fun SHOULD_NOT_REACH(): Nothing = throw IllegalStateException("Should not reach")
 
+fun <T> Iterable<T>.splitAt(
+    keepSplitter: Boolean = false,
+    keepEmpty: Boolean = false,
+    predicate: (T) -> Boolean
+): List<List<T>> {
+    val result = mutableListOf<List<T>>()
+    var current = mutableListOf<T>()
+    for (element in this) {
+        if (predicate(element)) {
+            if (keepSplitter) current.add(element)
+            if (keepEmpty || current.isNotEmpty()) result.add(current)
+            current = mutableListOf()
+        } else {
+            current.add(element)
+        }
+    }
+    result.add(current)
+    return result
+}
+
 fun <E> List<E>.middle(): E {
     return if (isEmpty()) throw NoSuchElementException("List is empty")
     else this[size / 2]
